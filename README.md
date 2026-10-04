@@ -81,6 +81,8 @@ npm run dev                    # http://localhost:3000, админка: /admin
 
 Для показа этого достаточно, для работы нужен деплой ниже.
 
+Чтобы демо не засыпало, настройте бесплатный монитор на [UptimeRobot](https://uptimerobot.com) или [cron-job.org](https://cron-job.org), который каждые 5 минут открывает `https://<ваш-сайт>.onrender.com/api/health`. Бесплатных 750 часов Render в месяц хватает ровно на один такой сервис.
+
 ## Деплой
 
 Нужен Node-хостинг с постоянным диском (VPS, Railway, Render, Fly.io с volume):
