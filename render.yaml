@@ -1,0 +1,20 @@
+# Render Blueprint: demo deploy on the free plan.
+# The free plan has no persistent disk, so the database is re-created from
+# data/vmg-snapshot.json on every restart — fine for a preview, not for production.
+services:
+  - type: web
+    name: octane-auto
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm run db:seed && npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        value: conrad@octaneauto.co.za
+      - key: ADMIN_PASSWORD
+        sync: false
