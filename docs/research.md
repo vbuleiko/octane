@@ -11,7 +11,7 @@
 | Тёмно-серый (`--dark-grey`) | `#232628` |
 | Оранжевый в самом логотипе | около `#F86400` |
 | Слоган | Your drive is our passion |
-| Логотип | `assets/brand/logo-original.png` (241×242, на чёрном квадрате) и `assets/brand/logo-circle.png` (тот же логотип, обрезанный по кругу, с прозрачным фоном). Сам логотип не меняется. |
+| Логотип | `public/brand/logo-original.png` (241×242, на чёрном квадрате) и `public/brand/logo-circle.png` (тот же логотип, обрезанный по кругу, с прозрачным фоном). Сам логотип не меняется. |
 
 Векторного логотипа на сайте нет (`logo.svg` отдаёт 404). Для продакшена нужен оригинал в SVG/AI от клиента.
 
@@ -37,7 +37,7 @@
 ## Данные об авто
 
 Сток ведётся в DMS **VMG Software** и отдаётся JSON-фидом:
-`/wp-content/themes/vmg-motors-theme/filterData.php`. Снимок фида лежит в `data/stock-snapshot.json`.
+`/wp-content/themes/vmg-motors-theme/filterData.php`. Снимок стока (с фото, опциями и описаниями) лежит в `data/vmg-snapshot.json`, импортёр: `src/lib/vmg.ts`.
 
 Поля фида: `stock_code, make, model, variant, year, value, mile, colour, body_type, fuelType, transmission, condition, imageUrl, permaLink, dateString, ...`
 Фото: `https://s3-eu-west-1.amazonaws.com/vmg.images.production/1057/1057_{id}_I{1..20}.jpg`

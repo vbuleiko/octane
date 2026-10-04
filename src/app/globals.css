@@ -1,0 +1,235 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Saira Variable', 'Saira', system-ui, sans-serif;
+
+  --color-ink: #0b0b0b;
+  --color-pit: #111113;
+  --color-panel: #161618;
+  --color-panel-2: #1c1c1f;
+  --color-line: #2b2b2e;
+  --color-line-soft: #222225;
+  --color-chalk: #fafafa;
+  --color-smoke: #c8c8cc;
+  --color-ash: #a3a3a3;
+  --color-octane: #f48222;
+  --color-octane-hot: #ff9a45;
+  --color-ok: #4ade80;
+  --color-warn: #facc15;
+  --color-bad: #f87171;
+
+  --animate-ticker: ticker 48s linear infinite;
+
+  @keyframes ticker {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-ink);
+    color: var(--color-chalk);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: var(--color-octane);
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-octane);
+    outline-offset: 3px;
+  }
+  input[type='range'] {
+    accent-color: var(--color-octane);
+  }
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: var(--color-octane);
+  }
+}
+
+/* Big italic condensed headings — the Pit Lane voice. */
+@utility display {
+  font-style: italic;
+  font-weight: 900;
+  font-stretch: 72%;
+  text-transform: uppercase;
+  line-height: 0.9;
+}
+
+/* Italic condensed labels for buttons, nav and card titles. */
+@utility racing {
+  font-style: italic;
+  font-weight: 800;
+  font-stretch: 85%;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@utility eyebrow {
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-octane);
+}
+
+@utility label-caps {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+}
+
+@utility skew {
+  transform: skewX(-12deg);
+}
+
+@utility unskew {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  transform: skewX(12deg);
+}
+
+/* The orange/graphite tiles of the Octane Auto studio floor. */
+@utility checker {
+  --checker-size: 28px;
+  background: repeating-conic-gradient(var(--color-octane) 0 25%, #2b2b2e 0 50%) 0 0 / var(--checker-size)
+    var(--checker-size);
+}
+
+@utility stroke-text {
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(250 250 250 / 0.09);
+}
+
+@utility clip-slant {
+  clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+}
+
+@utility clip-slant-right {
+  clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%);
+}
+
+@utility container-pit {
+  width: 100%;
+  max-width: 1360px;
+  margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 40px);
+}
+
+@utility field {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+  color: var(--color-chalk);
+  font: inherit;
+  font-size: 1rem;
+  border-radius: 0;
+  transition: border-color 0.15s ease;
+  &:focus {
+    outline: none;
+    border-color: var(--color-octane);
+  }
+  &::placeholder {
+    color: #77777c;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Admin ---------- */
+@utility adm-card {
+  background: #111113;
+  border: 1px solid #1f1f23;
+  border-radius: 14px;
+}
+
+@utility adm-field {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  background: #141417;
+  border: 1px solid #26262b;
+  border-radius: 10px;
+  color: var(--color-chalk);
+  font: inherit;
+  font-size: 15px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  &:focus {
+    outline: none;
+    border-color: var(--color-octane);
+    box-shadow: 0 0 0 3px rgb(244 130 34 / 0.2);
+  }
+  &::placeholder {
+    color: #6b6b72;
+  }
+}
+
+@utility adm-label {
+  font-size: 13px;
+  color: #a1a1aa;
+}
+
+@utility adm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+  &:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+}
+
+@utility adm-btn-primary {
+  background: var(--color-octane);
+  color: var(--color-ink);
+  &:hover {
+    background: var(--color-octane-hot);
+  }
+}
+
+@utility adm-btn-ghost {
+  border: 1px solid #2e2e33;
+  color: var(--color-chalk);
+  &:hover {
+    border-color: #52525b;
+    background: #17171a;
+  }
+}
