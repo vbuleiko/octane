@@ -192,8 +192,11 @@ def privacy():
 def robots():
     if g.host:
         return site.robots(g.host)
-    return Response("User-agent: *\nDisallow: /app\nDisallow: /admin\nDisallow: /demo\nDisallow: /feeds\n",
-                    mimetype="text/plain")
+    lines = ["User-agent: *", "Disallow: /app", "Disallow: /admin", "Disallow: /demo", "Disallow: /feeds", ""]
+    for t in get_db().execute("SELECT slug FROM tenants WHERE domain = '' AND email IS NOT NULL AND is_demo = 0 "
+                              "AND is_disabled = 0 ORDER BY id"):  # dealers' websites on our address
+        lines.append("Sitemap: " + url_for("site.sitemap", slug=t["slug"], _external=True))
+    return Response("\n".join(lines) + "\n", mimetype="text/plain")
 
 
 @bp.get("/tls-check")

@@ -34,7 +34,6 @@ from .utils import (
     is_number,
     local_today,
     normalize_phone,
-    now_utc,
     parse_amount,
     parse_coords,
     parse_decimal,
@@ -230,8 +229,10 @@ def _read_car_form(car: dict | None) -> tuple[dict, list[str]]:
         return int(value) if is_number(value) and int(value) <= top else 0
 
     features = f.getlist("feature") + [x for x in re.split(r"[,\n]", f.get("more_features", "")) if x.strip()]
-    enabled = {c["key"] for c in portals.dealer_channels(get_db(), g.tenant)}
-    advertised = set(f.getlist("advertise"))
+    shown = {c["key"] for c in portals.dealer_channels(get_db(), g.tenant) if c["status"] in ("connected", "requested")}
+    before = set((car or {}).get("channels_off", []))
+    channels_off = sorted((before - shown) | (shown - set(f.getlist("advertise")))) if f.get("advertise_shown") \
+        else sorted(before)
     data = {
         "make": make, "model": model, "variant": clean_line(f.get("variant"), 60), "year": year,
         "price": price or 0, "was_price": was_price if price and was_price > price else 0,
@@ -248,7 +249,7 @@ def _read_car_form(car: dict | None) -> tuple[dict, list[str]]:
         "stock_no": clean_line(f.get("stock_no"), 20),
         "reg_no": clean_plate(f.get("reg_no")), "vin": vin, "engine_no": plate_key(f.get("engine_no"))[:20],
         "cost": cost or 0, "recon": recon or 0,
-        "channels_off": sorted(enabled - advertised) if f.get("advertise_shown") else (car or {}).get("channels_off", []),
+        "channels_off": channels_off,
         "photo_ids": [int(x) for x in f.getlist("photo") if is_number(x)][:MAX_PHOTOS],
     }
     return data, errors
@@ -441,7 +442,7 @@ def _forget_photo(db, photo):
 
 @bp.post("/photos")
 def upload_photo():
-    """One photo from the car form (already made smaller on the phone). The car is linked when it's saved."""
+    """One photo from the car form (already made smaller on the phone)."""
     upload = request.files.get("photo")
     vehicle_id = int(request.form["car"]) if is_number(request.form.get("car")) else None
     db = get_db()
@@ -455,11 +456,13 @@ def upload_photo():
     saved = _store_photo(upload.read() if upload else b"")
     if not saved:
         return jsonify(ok=False, error="That file isn't a photo we can read. Try a JPEG or PNG."), 400
-    with db:
+    with db:  # a saved car keeps the photo straight away; a new one gets it when the form is saved
+        position = db.execute("SELECT COALESCE(MAX(position), -1) + 1 FROM photos WHERE vehicle_id = ?",
+                              (vehicle_id,)).fetchone()[0] if vehicle_id else 999
         cur = db.execute(
             "INSERT INTO photos (tenant_id, vehicle_id, key, width, height, color, position, created_at) "
-            "VALUES (?, NULL, ?, ?, ?, ?, 999, ?)",
-            (_tid(), saved["key"], saved["width"], saved["height"], saved["color"], ts()),
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (_tid(), vehicle_id, saved["key"], saved["width"], saved["height"], saved["color"], position, ts()),
         )
     return jsonify(ok=True, id=cur.lastrowid, src=photos.src(saved, 400), color=saved["color"])
 

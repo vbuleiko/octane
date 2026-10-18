@@ -8,7 +8,7 @@ from pathlib import Path
 from PIL import Image
 
 from app import catalog, disc, notify, portals
-from app.utils import monthly_payment, normalize_phone, parse_amount, parse_coords, slugify, ts
+from app.utils import monthly_payment, now_utc, normalize_phone, parse_amount, parse_coords, slugify
 
 from .conftest import Browser, jpeg, signup
 
@@ -505,7 +505,7 @@ def test_lost_photos_are_cleaned_up(owner, db, app):
     photo = upload(owner).get_json()
     db.execute("UPDATE photos SET created_at = '2020-01-01 00:00:00' WHERE id = ?", (photo["id"],))
     db.commit()
-    notify.forget_lost_photos(db, Path(app.config["MEDIA_DIR"]), __import__("app.utils", fromlist=["now_utc"]).now_utc())
+    notify.forget_lost_photos(db, Path(app.config["MEDIA_DIR"]), now_utc())
     assert db.execute("SELECT COUNT(*) FROM photos").fetchone()[0] == 0
 
 
@@ -587,3 +587,24 @@ def test_views_and_taps(owner, db, app):
     assert (row["views"], row["whatsapp"], row["calls"]) == (1, 1, 0)
     assert b"1 view, 1 WhatsApp" in owner.get("/app/").data
     assert b"Last 30 days on your website" in owner.get(f"/app/car/{car['id']}").data
+
+
+def test_robots_lists_dealer_sitemaps(owner, db, client):
+    robots = client.get("/robots.txt").data.decode()
+    assert "Disallow: /feeds" in robots and f"Sitemap: http://localhost/site/{tenant(db)['slug']}/sitemap.xml" in robots
+
+
+def test_photo_on_a_saved_car_stays_without_saving_the_form(owner, db):
+    car = add_car(owner, db)
+    photo = upload(owner, car=car["id"]).get_json()
+    assert db.execute("SELECT vehicle_id FROM photos WHERE id = ?", (photo["id"],)).fetchone()[0] == car["id"]
+
+
+def test_portals_switched_on_later_get_existing_cars(owner, db, client):
+    photo = upload(owner).get_json()
+    car = add_car(owner, db, photos=[photo["id"]], advertise_shown="1")  # no portals on yet
+    assert json.loads(db.execute("SELECT channels_off FROM vehicles").fetchone()[0]) == []
+    owner.post("/app/portals/facebook", {"action": "connect"})
+    assert len(feed_rows(client, f"/feeds/{tenant(db)['feed_key']}/facebook.csv")) == 1
+    owner.post(f"/app/car/{car['id']}", {**CAR, "photo": [str(photo["id"])], "advertise_shown": "1"})
+    assert json.loads(db.execute("SELECT channels_off FROM vehicles").fetchone()[0]) == ["facebook"]

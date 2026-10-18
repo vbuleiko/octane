@@ -6,7 +6,6 @@ The manifest lists each car's photos with author and licence (CC0, CC BY, CC BY-
 same sizes the app makes from an upload (WebP 400/800/1200 and a JPEG), and writes static/samples/samples.json
 with the cars: SA variants, prices and mileage that fit the year, and the photo credits.
 """
-import io
 import json
 import sys
 from pathlib import Path
