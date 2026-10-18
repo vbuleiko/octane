@@ -1,0 +1,30 @@
+{% extends "app/layout.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}Leads{% endblock %}
+{% block top_right %}<a class="btn" href="{{ url_for('owner.new_lead') }}">{{ icon('plus') }} Add</a>{% endblock %}
+{% block content %}
+<nav class="segmented" aria-label="Show">
+  <a href="{{ url_for('owner.lead_list') }}" class="{{ 'on' if show == 'open' }}">Open <i>{{ (counts.new or 0) + (counts.contacted or 0) }}</i></a>
+  <a href="{{ url_for('owner.lead_list', show='won') }}" class="{{ 'on' if show == 'won' }}">Deal done <i>{{ counts.won or 0 }}</i></a>
+  <a href="{{ url_for('owner.lead_list', show='lost') }}" class="{{ 'on' if show == 'lost' }}">No deal <i>{{ counts.lost or 0 }}</i></a>
+</nav>
+
+{% for l in items %}
+<article class="lead-item card {{ 'is-new' if l.status == 'new' }}">
+  <a class="lead-main" href="{{ url_for('owner.lead', lid=l.id) }}">
+    <span class="lead-top"><b>{{ l.name }}</b><span class="since">{{ l.created_at|ago }}</span></span>
+    <span class="lead-meta"><span class="pill pill-{{ l.status }}">{{ l.status_label }}</span> {{ l.kind_label }}{% if l.car_title %} · {{ l.car_title }}{% endif %}</span>
+    {% if l.message %}<span class="lead-msg">{{ l.message|truncate(140) }}</span>{% endif %}
+    {% for label, value in l.detail_rows[:2] %}<span class="lead-detail">{{ label }}: <b>{{ value }}</b></span>{% endfor %}
+  </a>
+  {% if l.phone %}
+  <div class="lead-actions">
+    <a class="btn wa" href="{{ l.reply }}" target="_blank" rel="noopener" data-mark="{{ url_for('owner.lead_contacted', lid=l.id) if l.status == 'new' else '' }}" data-msg="{{ l.reply_text }}" data-preview>{{ icon('chat') }} Reply</a>
+    <a class="btn" href="tel:+{{ l.phone }}" aria-label="Call {{ l.name }}">{{ icon('phone') }}</a>
+  </div>
+  {% endif %}
+</article>
+{% else %}
+<p class="empty">{{ {'open': 'No open leads. Enquiries from your website land here — and in your email.', 'won': 'No deals marked yet.', 'lost': 'Nothing here.'}[show] }}</p>
+{% endfor %}
+{% endblock %}

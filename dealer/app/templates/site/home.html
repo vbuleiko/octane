@@ -1,0 +1,92 @@
+{% extends "site/layout.html" %}
+{% from "_macros.html" import icon, photo %}
+{% from "site/_macros.html" import car_card with context %}
+{% block page_title %}{{ 'Used cars in ' ~ t.city ~ ' · ' if t.city }}{% endblock %}
+{% block og_image %}{% if cars and cars[0].cover %}<meta property="og:image" content="{{ photo_jpeg(cars[0].cover) }}">{% endif %}{% endblock %}
+{% block page_head %}
+<script type="application/ld+json">{{ {"@context": "https://schema.org", "@type": "AutoDealer", "name": t.name, "url": home_url, "telephone": phone_text or none, "address": {"@type": "PostalAddress", "streetAddress": t.address, "addressLocality": t.city, "addressRegion": t.province or none, "addressCountry": "ZA"} if t.address or t.city else none, "openingHours": opening_hours, "image": photo_jpeg(cars[0].cover) if cars and cars[0].cover else none}|tojson }}</script>
+{% endblock %}
+{% block main %}
+<section class="dealer-hero">
+  <div class="dealer-hero-in">
+    <p class="eyebrow">{{ 'Used cars' ~ (' · ' ~ t.city if t.city) }}</p>
+    <h1>{{ t.tagline or ('Used cars in ' ~ t.city if t.city else 'Quality used cars') }}</h1>
+    <p class="hero-meta">
+      <span><i class="open-dot {{ 'is-open' if open_now }}"></i> {{ open_text }}</span>
+      {% if place %}<a href="{{ map_url }}" target="_blank" rel="noopener">{{ icon('pin') }} {{ place }}</a>{% endif %}
+    </p>
+    {% if total %}
+    <form class="quick-search" action="{{ su('cars') }}" method="get" role="search">
+      <label class="field"><span>Make</span>
+        <select name="make"><option value="">Any make</option>{% for m in makes %}<option>{{ m }}</option>{% endfor %}</select>
+      </label>
+      <label class="field"><span>Price up to</span>
+        <select name="price"><option value="">Any price</option>{% for p in price_steps if p <= max_price * 1.5 %}<option value="{{ p }}">{{ p|rand }}</option>{% endfor %}</select>
+      </label>
+      <button class="btn primary big">{{ icon('search') }} Show {{ total }} car{{ '' if total == 1 else 's' }}</button>
+    </form>
+    {% if bodies|length > 1 %}
+    <nav class="body-links" aria-label="Body types">{% for b in bodies %}<a href="{{ su('cars', body=b) }}">{{ b }}</a>{% endfor %}</nav>
+    {% endif %}
+    {% endif %}
+  </div>
+</section>
+
+<section class="dealer-section">
+  <div class="section-title"><h2>{{ 'Latest arrivals' if total > cars|length else 'Cars for sale' }}</h2>{% if total > cars|length %}<a href="{{ su('cars') }}">All {{ total }} cars {{ icon('next') }}</a>{% endif %}</div>
+  {% if cars %}
+  <div class="car-grid">
+    {% for c in cars %}{{ car_card(c, eager=loop.index <= 2) }}{% endfor %}
+  </div>
+  {% if total > cars|length %}<p class="center"><a class="btn big" href="{{ su('cars') }}">See all {{ total }} cars</a></p>{% endif %}
+  {% else %}
+  <div class="card empty-stock">
+    <h3>New stock is on its way</h3>
+    <p class="muted">Tell us what you're looking for — we'll let you know when it arrives.</p>
+    {% if wa %}<a class="btn wa" href="{{ wa }}" target="_blank" rel="noopener">{{ icon('chat') }} WhatsApp us</a>{% endif %}
+  </div>
+  {% endif %}
+</section>
+
+{% if perks %}
+<section class="dealer-section">
+  <ul class="perks">
+    {% for title, line in perks %}<li class="perk"><b>{{ title }}</b><span>{{ line }}</span></li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section class="dealer-section split-cta">
+  {% if finance_on %}
+  <a class="cta-tile" href="{{ su('finance') }}">{{ icon('money') }}<b>Work out your monthly payment</b><span>Pick a car, a deposit and a term. We apply at the banks for you.</span></a>
+  {% endif %}
+  <a class="cta-tile" href="{{ su('sell') }}">{{ icon('swap') }}<b>Selling or trading in?</b><span>Tell us about your car and get an offer.</span></a>
+</section>
+
+{% if t.about %}
+<section class="dealer-section about">
+  <h2>About us</h2>
+  <p class="prewrap">{{ t.about }}</p>
+</section>
+{% endif %}
+
+{% if sold %}
+<section class="dealer-section">
+  <div class="section-title"><h2>Recently sold</h2></div>
+  <div class="car-grid">{% for c in sold %}{{ car_card(c, sold=true) }}{% endfor %}</div>
+</section>
+{% endif %}
+
+<section class="dealer-section find-us">
+  <div>
+    <h2>Come and see us</h2>
+    {% if place %}<p>{{ place }}</p>{% endif %}
+    <p><i class="open-dot {{ 'is-open' if open_now }}"></i> {{ open_text }}</p>
+  </div>
+  <div class="find-us-actions">
+    <a class="btn big" href="{{ map_url }}" target="_blank" rel="noopener">{{ icon('pin') }} Directions</a>
+    {% if phone_text %}<a class="btn big" href="{{ tel_link(phone_text) }}">{{ icon('phone') }} {{ phone_text }}</a>{% endif %}
+    {% if wa %}<a class="btn wa big" href="{{ wa }}" target="_blank" rel="noopener" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }} WhatsApp</a>{% endif %}
+  </div>
+</section>
+{% endblock %}

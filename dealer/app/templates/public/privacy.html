@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Privacy · {{ config.APP_NAME }}{% endblock %}
+{% block body_class %}site{% endblock %}
+{% block body %}
+{% include "public/_nav.html" %}
+<main class="narrow prose">
+  <h1>Privacy policy</h1>
+  <p class="muted">In line with the Protection of Personal Information Act (POPIA).</p>
+
+  <h2>Who is who</h2>
+  <p>Each dealership that uses {{ config.APP_NAME }} is the <b>responsible party</b> for the information it collects about buyers and sellers. {{ config.APP_NAME }} is the <b>operator</b>: we store and process that information only to provide the service to the dealership.</p>
+
+  <h2>What we store</h2>
+  <ul>
+    <li>About dealers: business name, contact details, email, WhatsApp number, password (encrypted), their cars, photos and prices.</li>
+    <li>About people who contact a dealer through its website: name, phone number, email if given, the message, the car they asked about, and — for finance or selling a car — the answers they chose to give.</li>
+  </ul>
+
+  <h2>What we use it for</h2>
+  <p>To run the service: show the dealer's website, pass enquiries to the dealer by email and in the app, and send the dealer's cars to the car portals the dealer chose. We do not sell data, show ads, or contact a dealer's customers ourselves. Photo location data is removed when a photo is uploaded.</p>
+
+  <h2>If you contacted a dealer</h2>
+  <p>The dealer uses your details to answer you. To see, correct or delete your information, ask the dealer — or contact us and we'll pass it on.</p>
+
+  <h2>Security and retention</h2>
+  <p>Data is stored on secured servers and is only visible to the dealer it belongs to. When a dealer closes its account, its data is deleted within 30 days. Demo data is deleted within 24 hours.</p>
+
+  <h2>Contact</h2>
+  <p>{% if config.SUPPORT_EMAIL %}<a href="mailto:{{ config.SUPPORT_EMAIL }}">{{ config.SUPPORT_EMAIL }}</a>{% endif %}{% if support_wa %}{% if config.SUPPORT_EMAIL %} · {% endif %}<a href="{{ support_wa }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}{% if not config.SUPPORT_EMAIL and not support_wa %}Contact us through the dealership you visited.{% endif %}</p>
+</main>
+{% endblock %}

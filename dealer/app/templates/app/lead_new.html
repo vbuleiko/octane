@@ -1,0 +1,25 @@
+{% extends "app/layout.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}Add a lead{% endblock %}
+{% block top_left %}<a class="topbar-back" href="{{ url_for('owner.lead_list') }}">{{ icon('back') }} Add a lead</a>{% endblock %}
+{% block content %}
+<p class="muted">A walk-in or a phone call — write it down so nobody is forgotten.</p>
+<form method="post" class="card stack">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <label class="field"><span>Name</span><input name="name" value="{{ form.name or '' }}" required maxlength="60" autocomplete="off"></label>
+  <label class="field"><span>Phone <em>WhatsApp if they have it</em></span><input name="phone" value="{{ form.phone or '' }}" type="tel" placeholder="082 123 4567"></label>
+  <label class="field"><span>Car <em>optional</em></span>
+    <select name="car"><option value="">—</option>{% for c in cars %}<option value="{{ c.id }}" {{ 'selected' if form.car == c.id|string }}>{{ c.full_title }} · {{ c.price|rand }}</option>{% endfor %}</select>
+  </label>
+  <div class="grid2">
+    <label class="field"><span>What they want</span>
+      <select name="kind">{% for k, label in {'enquiry': 'Interested in a car', 'test_drive': 'Test drive', 'finance': 'Finance', 'sell': 'Sell / trade-in', 'contact': 'Other'}.items() %}<option value="{{ k }}" {{ 'selected' if form.kind == k }}>{{ label }}</option>{% endfor %}</select>
+    </label>
+    <label class="field"><span>How they came</span>
+      <select name="source">{% for k, label in {'walk-in': 'Walk-in', 'phone': 'Phone call', 'whatsapp': 'WhatsApp', 'portal': 'A portal', 'other': 'Other'}.items() %}<option value="{{ k }}" {{ 'selected' if form.source == k }}>{{ label }}</option>{% endfor %}</select>
+    </label>
+  </div>
+  <label class="field"><span>Notes</span><textarea name="message" rows="3" maxlength="1000">{{ form.message or '' }}</textarea></label>
+  <button class="btn primary big wide">Save</button>
+</form>
+{% endblock %}

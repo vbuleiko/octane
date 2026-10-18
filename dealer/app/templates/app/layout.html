@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon, flashes, preview_dialog %}
+{% block title %}{% block page_title %}{% endblock %} · {{ g.tenant.name }}{% endblock %}
+{% block body_class %}app{% endblock %}
+{% block body_attrs %}data-demo="{{ 1 if g.tenant.is_demo else 0 }}"{% endblock %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block body %}
+{% if g.sub.demo %}
+<div class="banner banner-demo">
+  <span>Demo dealership — tap around, nothing is real.</span>
+  <a href="{{ url_for('public.signup') }}">Start free trial →</a>
+</div>
+{% elif not g.tenant.email %}
+<div class="banner banner-demo">
+  <span>You're filling in {{ g.tenant.name }} for its owner-to-be (no owner yet).</span>
+  <a href="{{ url_for('admin.index') }}">Back to admin →</a>
+</div>
+{% elif not g.sub.active %}
+<div class="banner banner-error">
+  <span>Your {{ 'trial' if g.sub.plan == 'trial' else 'subscription' }} has ended. Your cars are safe, but you can't add new ones{% if g.sub.days_left >= -7 %}, and your website and portals stop in {{ 7 + g.sub.days_left }} day{{ '' if 7 + g.sub.days_left == 1 else 's' }}{% else %}, and your website shows only your contact details{% endif %}.</span>
+  <a href="{{ url_for('owner.settings_account') }}">Continue →</a>
+</div>
+{% elif g.sub.days_left is not none and g.sub.days_left <= 5 %}
+<div class="banner banner-warn">
+  <span>{{ 'Trial' if g.sub.plan == 'trial' else 'Subscription' }} ends {{ 'today' if g.sub.days_left == 0 else 'in %d day%s' % (g.sub.days_left, '' if g.sub.days_left == 1 else 's') }}.</span>
+  <a href="{{ url_for('owner.settings_account') }}">Keep using it →</a>
+</div>
+{% endif %}
+
+<header class="topbar">
+  {% block top_left %}<a class="topbar-title" href="{{ url_for('owner.stock_list') }}">{{ g.tenant.name }}</a>{% endblock %}
+  {% block top_right %}{% endblock %}
+</header>
+
+<main class="wrap">
+  {{ flashes() }}
+  {% block content %}{% endblock %}
+</main>
+
+<nav class="tabbar" aria-label="Main">
+  {% set ep = request.endpoint or '' %}
+  <a href="{{ url_for('owner.stock_list') }}" class="{{ 'on' if ep in ('owner.stock_list', 'owner.new_car', 'owner.edit_car') }}">{{ icon('grid') }}<span>Stock</span></a>
+  <a href="{{ url_for('owner.lead_list') }}" class="{{ 'on' if ep in ('owner.lead_list', 'owner.lead', 'owner.new_lead') }}">{{ icon('inbox') }}<span>Leads</span>{% if g.new_leads %}<b class="tab-badge" aria-label="{{ g.new_leads }} new">{{ g.new_leads }}</b>{% endif %}</a>
+  <a href="{{ url_for('owner.portal_list') }}" class="{{ 'on' if ep == 'owner.portal_list' }}">{{ icon('megaphone') }}<span>Portals</span></a>
+  <a href="{{ url_for('owner.website') }}" class="{{ 'on' if ep in ('owner.website', 'owner.settings_site', 'owner.settings_finance', 'owner.settings_theme') }}">{{ icon('globe') }}<span>Website</span></a>
+  <a href="{{ url_for('owner.settings') }}" class="{{ 'on' if ep in ('owner.settings', 'owner.settings_business', 'owner.settings_account') }}">{{ icon('gear') }}<span>Settings</span></a>
+</nav>
+
+{% if g.sub.demo %}{{ preview_dialog("In your real account this opens WhatsApp with the message ready — you just tap Send.") }}{% endif %}
+{% endblock %}

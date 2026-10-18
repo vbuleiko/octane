@@ -1,0 +1,44 @@
+# Production: the app + emails (enquiries, sign-ups, the daily report) + Caddy (automatic HTTPS). Settings live in .env
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - app_data:/data
+
+  # enquiries to dealers within a minute; sign-ups, portal requests and the 22:00 report to NOTIFY_EMAIL
+  notify:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - app_data:/data
+    command: ["flask", "--app", "app", "notify"]
+    healthcheck:
+      disable: true
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on: [app]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - app_data:/srv/data:ro  # car photos go straight from disk
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  app_data:
+  caddy_data:
+  caddy_config:

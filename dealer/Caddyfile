@@ -1,0 +1,35 @@
+# DOMAIN comes from .env: "dealereasy.co.za" gets a free HTTPS certificate automatically.
+# For a quick test by IP address use DOMAIN=:80 (and COOKIE_SECURE=0).
+{
+	# dealers' own addresses (www.joesmotors.co.za): a certificate on the first visit,
+	# only for addresses saved in /admin
+	on_demand_tls {
+		ask http://app:8000/tls-check
+	}
+}
+
+(site) {
+	encode zstd gzip
+	# car photos: file names are content hashes, so they never change
+	@media path_regexp media ^/media/\d+/(logo-)?[0-9a-f]{12,16}(-\d{2,4})?\.(jpg|webp|png)$
+	handle @media {
+		root * /srv/data
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+	handle {
+		reverse_proxy app:8000
+	}
+	header Strict-Transport-Security "max-age=31536000"
+}
+
+{$DOMAIN} {
+	import site
+}
+
+https:// {
+	tls {
+		on_demand
+	}
+	import site
+}

@@ -1,0 +1,35 @@
+{% extends "app/layout.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}Website texts{% endblock %}
+{% block top_left %}<a class="topbar-back" href="{{ url_for('owner.website') }}">{{ icon('back') }} Texts and logo</a>{% endblock %}
+{% block content %}
+{% set t = g.tenant %}
+<form method="post" enctype="multipart/form-data" class="stack">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <section class="card stack">
+    <h2>Logo</h2>
+    {% if logo %}
+    <div class="logo-preview"><img src="{{ logo.src }}" alt="{{ t.name }}" width="{{ logo.width }}" height="{{ logo.height }}"></div>
+    <label class="toggle small"><input type="checkbox" name="remove_logo" value="1"> Remove the logo (show the name instead)</label>
+    {% else %}
+    <p class="muted small">No logo: your website shows the dealership's name in the look's font. A PNG with a transparent background works best.</p>
+    {% endif %}
+    <label class="field"><span>{{ 'New logo' if logo else 'Upload a logo' }} <em>optional</em></span><input type="file" name="logo" accept="image/png,image/jpeg,image/webp"></label>
+  </section>
+
+  <section class="card stack">
+    <label class="field"><span>Tagline</span><input name="tagline" value="{{ t.tagline }}" maxlength="90" placeholder="Quality used cars, honest prices."><small class="muted">Under your name at the top of the website.</small></label>
+    <label class="field"><span>About us</span><textarea name="about" rows="5" maxlength="1500" placeholder="Family-run since 2009. Every car is checked in our own workshop...">{{ t.about }}</textarea></label>
+    <fieldset class="field"><legend>Why buy from us</legend>
+      <div class="stack tight">{% for key, (title, line) in catalog.PERKS.items() %}<label class="toggle"><input type="checkbox" name="perk" value="{{ key }}" {{ 'checked' if key in perks }}> {{ title }} <em class="muted">— {{ line }}</em></label>{% endfor %}</div>
+    </fieldset>
+  </section>
+
+  <section class="card stack">
+    <label class="field"><span>Under every car's description</span><textarea name="desc_footer" rows="3" maxlength="600" placeholder="Finance available through all the major banks. Trade-ins welcome.">{{ t.desc_footer }}</textarea><small class="muted">Warranty, finance, trade-ins, delivery: written once, shown on every car and sent to the portals.</small></label>
+    <label class="field"><span>WhatsApp answer to an enquiry</span><textarea name="msg_reply" rows="3" maxlength="600" placeholder="{{ msg_reply }}">{{ t.msg_reply }}</textarea><small class="muted">You can use <code>{name}</code> <code>{car}</code> <code>{business}</code>. Empty: the text above in grey.</small></label>
+  </section>
+
+  <button class="btn primary big wide">Save</button>
+</form>
+{% endblock %}

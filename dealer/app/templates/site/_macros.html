@@ -1,0 +1,18 @@
+{% from "_macros.html" import icon, photo %}
+{# a car in a grid: photo, title, the facts people compare, price and the monthly estimate #}
+{% macro car_card(c, eager=false, sold=false) -%}
+<article class="car-card {{ 'is-sold' if sold }}">
+  <a class="car-link" href="{{ su('car', car=c.slug) }}">
+    <div class="car-photo" {% if c.cover %}style="background-color: {{ c.cover.color }}"{% endif %}>
+      {% if c.cover %}{{ photo(c.cover, '(max-width: 559px) calc(100vw - 32px), (max-width: 899px) calc(50vw - 28px), (max-width: 1199px) calc(33vw - 28px), 300px', alt=c.full_title, eager=eager) }}{% else %}<span class="no-photo">{{ icon('camera') }}</span>{% endif %}
+      {% if sold %}<span class="ribbon">Sold</span>{% elif c.status == 'reserved' %}<span class="ribbon">Reserved</span>{% elif c.sample %}<span class="ribbon ribbon-ex">Example</span>{% endif %}
+    </div>
+    <div class="car-body">
+      <h3 class="car-title">{{ c.title }}</h3>
+      {% if c.variant %}<p class="car-variant">{{ c.variant }}</p>{% endif %}
+      <p class="car-facts">{{ c.mileage|km }} km{% if c.transmission %} · {{ c.transmission }}{% endif %}{% if c.fuel %} · {{ c.fuel }}{% endif %}</p>
+      <p class="car-price">{% if not sold %}<b>{{ c.price|rand }}</b>{% if c.was_price %} <s>{{ c.was_price|rand }}</s>{% endif %}{% if c.finance %}<span class="car-monthly">≈ {{ c.finance.monthly|rand }} p/m</span>{% endif %}{% endif %}</p>
+    </div>
+  </a>
+</article>
+{%- endmacro %}

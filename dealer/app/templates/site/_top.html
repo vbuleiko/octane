@@ -1,0 +1,22 @@
+{# the owner (logged in) or the owner-to-be of a website we made sees a bar with the looks #}
+{% if owner_view or prospect %}
+<div class="owner-bar">
+  {% if prospect %}
+  <span>Your new website by {{ config.APP_NAME }}{{ ' — the cars are examples' if not has_own_cars }}. Try the looks:</span>
+  {% else %}
+  <span>{{ 'Demo — this is the website your buyers see.' if t.is_demo else 'Your website, as buyers see it.' }}</span>
+  {% endif %}
+  <form method="post" action="{{ url_for('public.theme') if prospect else url_for('owner.settings_theme') }}" class="look-dots" aria-label="Look" data-look>
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="next" value="{{ request.path }}">
+    {% for key, th in themes.items() %}
+    <button name="theme" value="{{ key }}" class="look-dot" data-css="{{ theme_css(key) }}" data-bg="{{ th.bg }}" style="--dot-bg: {{ th.bg }}; --dot: {{ th.accent }}" title="{{ th.name }}" aria-label="{{ th.name }} look" aria-pressed="{{ 'true' if key == theme else 'false' }}"></button>
+    {% endfor %}
+  </form>
+  {% if not prospect %}
+  <a href="{{ url_for('owner.stock_list') }}">Open app →</a>
+  {% elif config.SUPPORT_WHATSAPP %}
+  <a href="{{ url_for('site.pick', slug=t.slug) }}" target="_blank" rel="noopener">I like this look →</a>
+  {% endif %}
+</div>
+{% endif %}

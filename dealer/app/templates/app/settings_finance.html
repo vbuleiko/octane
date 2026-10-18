@@ -1,0 +1,22 @@
+{% extends "app/layout.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}Finance calculator{% endblock %}
+{% block top_left %}<a class="topbar-back" href="{{ url_for('owner.website') }}">{{ icon('back') }} Finance calculator</a>{% endblock %}
+{% block content %}
+{% set t = g.tenant %}
+<form method="post" class="card stack">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <label class="toggle"><input type="checkbox" name="finance_on" value="1" {{ 'checked' if t.finance_on }}> Show monthly payments and the finance page</label>
+  <div class="grid2">
+    <label class="field"><span>Interest rate, % a year</span><input name="rate" value="{{ t.finance_rate|num }}" inputmode="decimal" maxlength="6"></label>
+    <label class="field"><span>Term</span><select name="months">{% for m in (12, 24, 36, 48, 54, 60, 72, 84) %}<option value="{{ m }}" {{ 'selected' if t.finance_months == m }}>{{ m }} months</option>{% endfor %}</select></label>
+  </div>
+  <div class="grid2">
+    <label class="field"><span>Deposit, % of the price</span><input name="deposit" value="{{ t.finance_deposit }}" inputmode="numeric" maxlength="2"></label>
+    <label class="field"><span>Balloon, % of the price</span><input name="balloon" value="{{ t.finance_balloon }}" inputmode="numeric" maxlength="2"></label>
+  </div>
+  {% if example %}<p class="muted small">A R250,000 car: <b>{{ example.monthly|rand }} a month</b> with {{ example.deposit|rand }} down{% if example.balloon %} and a {{ example.balloon|rand }} balloon{% endif %}.</p>{% endif %}
+  <p class="muted small">Buyers see it as an estimate: “subject to bank approval, rates differ per buyer”. They can change the deposit and term on your website.</p>
+  <button class="btn primary big wide">Save</button>
+</form>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ error.code }} · {{ g.site.name if g.site else config.APP_NAME }}{% endblock %}
+{% block body_class %}site{% endblock %}
+{% block body %}
+{% if not g.site and not g.host %}{% include "public/_nav.html" %}{% endif %}
+<main class="narrow center">
+  <h1>{{ {404: 'Page not found', 413: 'That file is too big'}.get(error.code, 'Something went wrong') }}</h1>
+  <p class="muted">{{ {404: "This page doesn't exist — or the car has been sold.", 413: "Photos up to 15 MB each, please."}.get(error.code, error.description) }}</p>
+  <p class="cta cta-center"><a class="btn primary" href="/">Home</a>{% if not g.site %} <a class="btn" href="/app">Open the app</a>{% endif %}</p>
+</main>
+{% endblock %}

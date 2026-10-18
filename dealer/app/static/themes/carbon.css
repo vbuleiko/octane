@@ -1,0 +1,74 @@
+:root { --bg: #0a0a0a; --card: #141414; --card-2: #1c1c1c; --text: #f2f2f2; --muted: #8c8c8c; --line: #242424; --accent: #ff5a1f; --accent-soft: #2b1409; --accent-ink: #0a0a0a; --wa: #25d366; --wa-ink: #03140a; --blue: #ffb000; --warn-bg: #2a2005; --warn: #ffc53d; --danger: #ff4545; --danger-bg: #2a0c0c; --good: #3ddc84; --radius: 4px; --shadow: none; --display: "Barlow Condensed", "Arial Narrow", sans-serif; color-scheme: dark; }
+body { font-family: "Barlow", system-ui, sans-serif; }
+h1, h2, h3, .topbar-title, .topbar-back, .logo { font-family: var(--display); text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+.since { font-family: var(--display); font-size: .95rem; font-weight: 600; letter-spacing: .06em; }
+.btn { border-radius: 3px; background: var(--card-2); border-color: #303030; font-family: var(--display); text-transform: uppercase; letter-spacing: .09em; font-weight: 700; font-size: 1.02rem; }
+.btn.big { font-size: 1.2rem; }
+.btn.primary { box-shadow: 0 0 0 1px var(--accent), 0 10px 30px -12px rgb(255 90 31 / 70%); }
+.link { color: var(--accent); }
+a { color: var(--accent); }
+.topbar { background: rgb(10 10 10 / 90%); border-bottom-color: #1c1c1c; }
+.topbar-title { font-size: 1.3rem; letter-spacing: .06em; gap: .5em; }
+.topbar-title::before { content: ""; width: 10px; height: 10px; background: var(--accent); transform: skewX(-18deg); }
+.banner-demo { background: #111; color: var(--muted); border-bottom: 1px solid #1c1c1c; }
+.banner-demo a { color: var(--accent); }
+.stat { background: transparent; border: 0; border-left: 2px solid #333; border-radius: 0; padding: 2px 0 2px 12px; }
+.stats .stat:first-child { border-left-color: var(--accent); }
+.stat b { font-family: var(--display); font-size: 2.2rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
+.stat span { text-transform: uppercase; letter-spacing: .14em; font-size: .68rem; font-weight: 600; margin-top: 6px; }
+.count { font-family: var(--display); font-size: .85rem; border-radius: 2px; padding: 0 .5em; background: #262626; }
+.card { border-color: #1e1e1e; }
+.tabbar { background: #0a0a0a; border-top-color: #1c1c1c; }
+.tabbar a { position: relative; font-family: var(--display); text-transform: uppercase; letter-spacing: .14em; font-size: .72rem; }
+.tabbar a.on::before { content: ""; position: absolute; top: 0; left: 32%; right: 32%; height: 2px; background: var(--accent); }
+.icon { stroke-width: 1.75; }
+input, select, textarea { border-radius: 3px; background: #101010; border-color: #2a2a2a; }
+input:focus, select:focus, textarea:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
+.field > span, .field > legend { text-transform: uppercase; letter-spacing: .14em; font-size: .7rem; }
+.chip span { border-radius: 3px; background: #131313; border-color: #2a2a2a; }
+.segmented { border-radius: 4px; background: #111; border-color: #1e1e1e; }
+.segmented a { border-radius: 2px; font-family: var(--display); text-transform: uppercase; letter-spacing: .1em; font-size: .9rem; }
+th { letter-spacing: .14em; }
+.card > h2 { font-size: 1.15rem; letter-spacing: .1em; }
+.flash { border-left: 3px solid var(--accent); border-radius: 3px; }
+dialog.sheet { border-radius: 6px; background: #121212; }
+.eyebrow { font-family: var(--display); letter-spacing: .24em; font-size: .9rem; }
+.hero h1 { font-size: clamp(2.7rem, 10vw, 4.8rem); line-height: .92; letter-spacing: .005em; }
+.lead { color: #a3a3a3; }
+.phone { background: #000; border: 1px solid #262626; border-radius: 36px; box-shadow: 0 40px 90px -30px rgb(255 90 31 / 28%); }
+.mini-btn { border-radius: 2px; font-family: var(--display); text-transform: uppercase; letter-spacing: .08em; font-size: .8rem; }
+.steps li::before { border-radius: 0; font-family: var(--display); transform: skewX(-10deg); }
+.price-card { border-radius: 6px; }
+.mini-today span { border-radius: 3px; }
+.owner-bar { background: #111; border-bottom-color: #1c1c1c; }
+.open-dot { border-radius: 1px; transform: skewX(-18deg); }
+.promo h2 { font-size: clamp(2.4rem, 8vw, 3.6rem); line-height: .95; }
+.mini-title, .mini-bar b { font-family: var(--display); letter-spacing: .05em; }
+.mini-title { text-transform: uppercase; }
+.mini-bar b { font-size: 1.35rem; }
+.logo-mark .wheel { stroke-width: 3.4; }
+.since, .stock-price, .stock-title { font-family: var(--display); }
+.stock-title { text-transform: uppercase; letter-spacing: .04em; font-size: 1.12rem; }
+.stock-price { font-size: 1.2rem; font-weight: 600; letter-spacing: .03em; }
+.stock-thumb, .photo-tile, .photo-add { border-radius: 2px; }
+.pill { border-radius: 2px; font-family: var(--display); text-transform: uppercase; letter-spacing: .08em; }
+.lead-item.is-new { background: linear-gradient(90deg, #1d120c, #121212 60%); }
+.mini-photo { border-radius: 2px; }
+/* dealer website: pit-lane boards */
+.dealer-name, .dealer-links a, .body-links a, .ribbon, .car-title, .car-price b, .car-price-big b, .calc-result b, .contact-price b, .key-facts li, .gallery-count { font-family: var(--display); }
+.dealer-name { text-transform: uppercase; letter-spacing: .05em; font-size: 1.7rem; }
+.dealer-links a { text-transform: uppercase; letter-spacing: .14em; font-size: 1.02rem; }
+.dealer-hero { background: linear-gradient(180deg, #120a06, var(--bg)); }
+.dealer-hero h1 { font-size: clamp(3rem, 13vw, 5.4rem); line-height: .88; letter-spacing: .005em; }
+.dealer-hero-in::after { content: ""; display: block; height: 6px; margin-top: 24px; background: repeating-linear-gradient(-60deg, var(--accent) 0 8px, transparent 8px 16px); }
+.body-links a { border-radius: 2px; text-transform: uppercase; letter-spacing: .1em; background: #121212; }
+.car-card { background: linear-gradient(180deg, #161616, #101010); border-color: #1e1e1e; }
+.car-title { text-transform: uppercase; letter-spacing: .04em; font-size: 1.3rem; }
+.car-price b { font-size: 1.65rem; font-weight: 600; letter-spacing: .02em; }
+.car-price-big b { font-size: 2.8rem; font-weight: 600; letter-spacing: .02em; }
+.ribbon { border-radius: 0; transform: skewX(-10deg); text-transform: uppercase; letter-spacing: .12em; }
+.perk, .cta-tile, .key-facts li { border-radius: 2px; }
+.key-facts li { text-transform: uppercase; letter-spacing: .08em; font-size: .95rem; }
+.section-title h2, .dealer-section > h2 { font-size: 1.8rem; }
+.contact-price b { font-size: 1.45rem; font-weight: 600; letter-spacing: .03em; }
+.calc-result b { font-size: 3rem; font-weight: 600; }

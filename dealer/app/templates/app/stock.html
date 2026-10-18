@@ -1,0 +1,60 @@
+{% extends "app/layout.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}Stock{% endblock %}
+{% block top_right %}<a class="btn primary" href="{{ url_for('owner.new_car') }}">{{ icon('plus') }} Add car</a>{% endblock %}
+{% block content %}
+{% if first_run %}
+<section class="card onboarding stack">
+  <h2>Add your first car</h2>
+  <ol>
+    <li><b>Scan the licence disc</b> — make, model, colour and VIN fill in by themselves.</li>
+    <li><b>Take the photos</b> right on your phone. We make them small and fast for your website.</li>
+    <li><b>Set the price and save.</b> It's on <a href="{{ g.site_url }}" target="_blank" rel="noopener">your website</a> at once, and on the portals you switch on.</li>
+  </ol>
+  <a class="btn primary big wide" href="{{ url_for('owner.new_car') }}">{{ icon('plus') }} Add a car</a>
+</section>
+{% else %}
+<section class="stats">
+  <div class="stat"><b>{{ summary.for_sale }}</b><span>for sale</span></div>
+  <div class="stat"><b>{{ summary.value|rand }}</b><span>stock value</span></div>
+  <div class="stat"><b>{{ summary.avg_days if summary.avg_days is not none else '—' }}</b><span>avg days in stock{% if summary.old %} · {{ summary.old }} over 60{% endif %}</span></div>
+  <div class="stat"><b>{{ summary.sold_month }}</b><span>sold this month{% if summary.profit_month is not none %} · {{ summary.profit_month|rand }} profit{% endif %}</span></div>
+</section>
+{% endif %}
+
+<a class="site-link card" href="{{ g.site_url }}" target="_blank" rel="noopener">
+  {{ icon('globe') }}<span><b>Your website</b><small>{{ g.site_url.split('://')[1] }}</small></span>{{ icon('external') }}
+</a>
+
+{% if not first_run %}
+<nav class="segmented" aria-label="Show">
+  <a href="{{ url_for('owner.stock_list') }}" class="{{ 'on' if show == 'sale' }}">For sale <i>{{ (counts.available or 0) + (counts.reserved or 0) }}</i></a>
+  <a href="{{ url_for('owner.stock_list', show='draft') }}" class="{{ 'on' if show == 'draft' }}">Drafts <i>{{ counts.draft or 0 }}</i></a>
+  <a href="{{ url_for('owner.stock_list', show='sold') }}" class="{{ 'on' if show == 'sold' }}">Sold <i>{{ counts.sold or 0 }}</i></a>
+</nav>
+<form class="search" role="search">
+  {% if show != 'sale' %}<input type="hidden" name="show" value="{{ show }}">{% endif %}
+  {{ icon('search') }}<input type="search" name="q" value="{{ q }}" placeholder="Search make, model, stock no., reg" aria-label="Search stock" enterkeyhint="search">
+</form>
+
+{% for c in cars %}
+<a class="stock-item card" href="{{ url_for('owner.edit_car', vid=c.id) }}">
+  <span class="stock-thumb" {% if c.cover %}style="background-color: {{ c.cover.color }}"{% endif %}>
+    {% if c.cover %}<img src="{{ photo_src(c.cover, 400) }}" alt="" width="{{ c.cover.width }}" height="{{ c.cover.height }}" loading="lazy" decoding="async">{% else %}{{ icon('camera') }}{% endif %}
+  </span>
+  <span class="stock-text">
+    <span class="stock-top"><b class="stock-title">{{ c.title }}</b><b class="stock-price">{{ c.price|rand if c.price else '—' }}</b></span>
+    <span class="stock-meta">{{ c.variant }}{% if c.variant %} · {% endif %}{{ c.mileage|km }} km{% if c.transmission %} · {{ c.transmission }}{% endif %} · {{ c.stock_no }}</span>
+    <span class="stock-meta">
+      {% if c.status == 'reserved' %}<span class="pill pill-reserved">Reserved</span>{% elif c.status == 'draft' %}<span class="pill">Draft</span>{% elif c.status == 'sold' %}<span class="pill pill-sold">Sold {{ c.sold_at|local('%d %b') }}</span>{% endif %}
+      {% if c.days is not none %}<span class="{{ 'warn-text' if c.days >= 60 and c.status != 'sold' }}">{% if c.days == 0 and c.status != 'sold' %}Added today{% else %}{{ c.days }} day{{ '' if c.days == 1 else 's' }}{{ ' to sell' if c.status == 'sold' else ' in stock' }}{% endif %}</span>{% endif %}
+      {% if c.lead_count %}· {{ c.lead_count }} enquir{{ 'y' if c.lead_count == 1 else 'ies' }}{% endif %}
+      {% if not c.photos and c.status != 'sold' %}· <span class="warn-text">no photos</span>{% endif %}
+    </span>
+  </span>
+</a>
+{% else %}
+<p class="empty">{{ 'Nothing matches "%s".' % q if q else {'sale': 'No cars for sale right now.', 'draft': 'No drafts. A car saved as a draft is only visible to you.', 'sold': 'No sold cars yet.'}[show] }}</p>
+{% endfor %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% block title %}{% block page_title %}{% endblock %}{{ t.name }}{% endblock %}
+{% block description %}{% block page_description %}{{ t.name }}{{ ', ' ~ place if place }}. Quality used cars for sale{{ ' in ' ~ t.city if t.city }}: photos, prices and finance estimates. WhatsApp us or book a test drive.{% endblock %}{% endblock %}
+{% block icons %}
+<link rel="icon" href="data:image/svg+xml,{{ ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="' ~ themes[theme].accent ~ '"/><text x="32" y="45" font-family="Arial,sans-serif" font-size="38" font-weight="700" text-anchor="middle" fill="' ~ themes[theme].ink ~ '">' ~ (t.name[:1]|upper|e) ~ '</text></svg>')|urlencode }}">
+{% endblock %}
+{% block script %}<script src="{{ url_for('static', filename='site.js') }}" defer></script>{% endblock %}
+{% block head %}
+{% if noindex %}<meta name="robots" content="noindex">{% endif %}
+<link rel="canonical" href="{% block canonical %}{{ home_url }}{% endblock %}">
+<meta property="og:site_name" content="{{ t.name }}">
+<meta property="og:type" content="{% block og_type %}website{% endblock %}">
+<meta property="og:title" content="{% block og_title %}{{ t.name }}{% endblock %}">
+<meta property="og:description" content="{{ self.page_description() }}">
+{% block og_image %}{% endblock %}
+{% block page_head %}{% endblock %}
+{% endblock %}
+{% block body_class %}site dealer{% endblock %}
+{% block body_attrs %}data-demo="{{ 1 if t.is_demo else 0 }}"{% endblock %}
+{% block body %}
+{% include "site/_top.html" %}
+<header class="dealer-nav">
+  <div class="dealer-nav-in">
+    <a class="dealer-brand" href="{{ su('home') }}">
+      {% if logo %}<img src="{{ logo.src }}" alt="{{ t.name }}" width="{{ logo.width }}" height="{{ logo.height }}" class="dealer-logo">{% else %}<span class="dealer-name">{{ t.name }}</span>{% endif %}
+    </a>
+    <nav class="dealer-links" aria-label="Website">
+      <a href="{{ su('cars') }}" {{ 'aria-current=page' if request.endpoint in ('site.cars', 'site.cars_d', 'site.car', 'site.car_d') }}>Cars</a>
+      {% if finance_on %}<a href="{{ su('finance') }}" {{ 'aria-current=page' if request.endpoint in ('site.finance', 'site.finance_d') }}>Finance</a>{% endif %}
+      <a href="{{ su('sell') }}" {{ 'aria-current=page' if request.endpoint in ('site.sell', 'site.sell_d') }}>Sell your car</a>
+      <a href="{{ su('contact') }}" {{ 'aria-current=page' if request.endpoint in ('site.contact', 'site.contact_d') }}>Contact</a>
+    </nav>
+    {% if wa %}<a class="btn wa nav-wa" href="{{ wa }}" target="_blank" rel="noopener" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }}<span>WhatsApp</span></a>{% endif %}
+  </div>
+</header>
+
+<main class="dealer-main">
+{% block main %}{% endblock %}
+</main>
+
+<footer class="dealer-footer">
+  <div class="dealer-footer-in">
+    <section>
+      <b class="footer-name">{{ t.name }}</b>
+      {% if place %}<p><a href="{{ map_url }}" target="_blank" rel="noopener">{{ icon('pin') }} {{ place }}</a></p>{% endif %}
+      {% if phone_text %}<p><a href="{{ tel_link(phone_text) }}">{{ icon('phone') }} {{ phone_text }}</a></p>{% endif %}
+      {% if t.public_email %}<p><a href="mailto:{{ t.public_email }}">{{ icon('mail') }} {{ t.public_email }}</a></p>{% endif %}
+    </section>
+    <section>
+      <b>Opening hours</b>
+      <ul class="hours-list">{% for name, text in hours_rows %}<li><span>{{ name }}</span><span>{{ text }}</span></li>{% endfor %}</ul>
+    </section>
+    <section class="footer-links">
+      <a href="{{ su('cars') }}">All cars</a>
+      {% if finance_on %}<a href="{{ su('finance') }}">Finance</a>{% endif %}
+      <a href="{{ su('sell') }}">Sell your car</a>
+      <a href="{{ su('privacy') }}">Privacy</a>
+    </section>
+  </div>
+  <p class="footer-fine">© {{ year }} {{ t.name }} · Website by {{ config.APP_NAME }}{% if not prospect %} · <a href="{{ '/login' if g.host else url_for('public.login') }}" rel="nofollow">Dealer login</a>{% endif %}</p>
+</footer>
+
+{% block contact_bar %}
+{% if wa or phone_text %}
+<div class="contact-bar">
+  {% if phone_text %}<a class="btn" href="{{ tel_link(phone_text) }}">{{ icon('phone') }} Call</a>{% endif %}
+  {% if wa %}<a class="btn wa" href="{{ wa }}" target="_blank" rel="noopener" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }} WhatsApp</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}
+{% if t.is_demo %}
+<dialog id="preview-dialog" class="sheet"><h3>WhatsApp</h3><p class="muted small">On a real website this opens WhatsApp with the message ready.</p><div class="bubble" id="preview-text"></div><div class="row"><button type="button" class="btn primary" data-close>OK</button></div></dialog>
+{% endif %}
+{% endblock %}

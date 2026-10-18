@@ -1,0 +1,16 @@
+{% extends "site/layout.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}Thank you · {% endblock %}
+{% block head %}{{ super() }}<meta name="robots" content="noindex">{% endblock %}
+{% block main %}
+<div class="narrow-page center thanks">
+  <span class="thanks-icon">{{ icon('check') }}</span>
+  <h1>Thank you!</h1>
+  <p class="lead">{{ {'test_drive': "We'll confirm your test drive shortly.", 'finance': "We'll call you to finish the finance application.", 'sell': "We'll look at your car and come back with an offer."}.get(kind, "We'll get back to you shortly.") }}</p>
+  <p class="muted">Usually within working hours, on WhatsApp or by phone.</p>
+  <div class="row wrap-row center-row">
+    <a class="btn big" href="{{ su('cars') }}">{{ icon('car') }} See our cars</a>
+    {% if wa %}<a class="btn wa big" href="{{ wa }}" target="_blank" rel="noopener" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }} WhatsApp us now</a>{% endif %}
+  </div>
+</div>
+{% endblock %}

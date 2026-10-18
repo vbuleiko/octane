@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon, flashes %}
+{% block title %}{{ config.APP_NAME }} — a website, stock list and WhatsApp leads for car dealers{% endblock %}
+{% block body_class %}site{% endblock %}
+{% block body %}
+{% include "public/_nav.html" %}
+
+<main>
+  <section class="hero">
+    <div class="hero-text">
+      {{ flashes() }}
+      <p class="eyebrow">For South African car dealers</p>
+      <h1>Add a car once. It's on your website, Facebook and the portals.</h1>
+      <p class="lead">Scan the licence disc, snap the photos, set the price. Your own fast website shows the car at once, buyers WhatsApp you about it, and sold cars come off everywhere by themselves.</p>
+      <div class="cta">
+        <form method="post" action="{{ url_for('public.demo') }}">
+          <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+          <button class="btn primary big">Try the live demo</button>
+        </form>
+        <a class="btn big" href="{{ url_for('public.signup') }}">Start {{ config.TRIAL_DAYS }}-day free trial</a>
+      </div>
+      <p class="muted small">No card needed · Works on any phone · Your website is ready the moment you sign up</p>
+      <p class="small hero-login">Already have an account? <a href="{{ url_for('public.login') }}">Log in</a></p>
+    </div>
+
+    <div class="hero-visual">
+      <div class="phone" aria-hidden="true">
+        <div class="phone-screen">
+          <div class="mini-today"><span><b>23</b> for sale</span><span><b>R6.1m</b> stock</span></div>
+          <div class="mini-lane">For sale</div>
+          <div class="mini-car"><i class="mini-photo p1"></i><div><b>2019 Toyota Hilux</b><small>2.8 GD-6 Raider · 98,000 km</small></div><b class="mini-price">R469,900</b></div>
+          <div class="mini-car"><i class="mini-photo p2"></i><div><b>2021 VW Polo</b><small>1.0 TSI Comfortline · 41,000 km</small></div><b class="mini-price">R264,900</b></div>
+          <div class="mini-car"><i class="mini-photo p3"></i><div><b>2018 BMW 320i</b><small>M Sport auto · 77,000 km</small></div><b class="mini-price">R309,900</b></div>
+          <div class="mini-lane">New lead · 3 min ago</div>
+          <div class="mini-lead"><div><b>Thandi M.</b><small>Test drive · 2021 VW Polo</small></div><span class="mini-btn wa">Reply</span></div>
+        </div>
+      </div>
+      <form method="post" action="{{ url_for('public.theme') }}" class="look" id="look" data-look>
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <span class="look-label">Look <b>{{ themes[theme].name }}</b></span>
+        <span class="look-dots">
+          {% for key, t in themes.items() %}
+          <button name="theme" value="{{ key }}" class="look-dot" data-css="{{ theme_css(key) }}" data-bg="{{ t.bg }}" style="--dot-bg: {{ t.bg }}; --dot: {{ t.accent }}" title="{{ t.name }}" aria-label="{{ t.name }} look" aria-pressed="{{ 'true' if key == theme else 'false' }}"></button>
+          {% endfor %}
+        </span>
+      </form>
+    </div>
+  </section>
+
+  <section class="how">
+    <h2>How it works</h2>
+    <ol class="steps">
+      <li><b>Scan the disc, take the photos.</b> Make, model, colour and VIN fill in by themselves. Photos shrink on your phone, so they upload fast even on 3G.</li>
+      <li><b>It's on your website.</b> A page for the car with every photo, specs, a monthly payment and a WhatsApp button — and in your Facebook catalogue.</li>
+      <li><b>Buyers message you.</b> Enquiries, test drives, finance and trade-ins land in the app and your email. Reply on WhatsApp in one tap.</li>
+    </ol>
+  </section>
+
+  <section class="promo" id="website">
+    <div class="promo-text">
+      <p class="eyebrow">Your website</p>
+      <h2>Fast, clean, and always up to date</h2>
+      <p class="lead">Five looks to choose from. Your cars with sharp photos that open in a second on a phone, filters, finance estimates, test drive and trade-in forms. No developer, no updating by hand.</p>
+      <ul class="ticks">
+        <li>{{ icon('check') }} On your own domain, like joesmotors.co.za — or on ours, free</li>
+        <li>{{ icon('check') }} Sold cars go off by themselves, reserved ones show as reserved</li>
+        <li>{{ icon('check') }} Ready for Google: every car has its own page and description</li>
+      </ul>
+      <form method="post" action="{{ url_for('public.demo') }}">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="next" value="site">
+        <button class="btn primary big">See a dealer website</button>
+      </form>
+    </div>
+    <div class="hero-visual">
+      <div class="phone" aria-hidden="true">
+        <div class="phone-screen mini-site">
+          <b class="mini-title">Sunrise Motors</b>
+          <span class="mini-open"><i class="open-dot is-open"></i> Open now · 08:30–17:00</span>
+          <div class="mini-search"><span>Any make</span><span class="mini-btn primary">Show 23 cars</span></div>
+          <div class="mini-cards">
+            <div class="mini-card-v"><i class="mini-photo p1"></i><b>2019 Toyota Hilux</b><small>98,000 km · Auto</small><b class="mini-price">R469,900</b></div>
+            <div class="mini-card-v"><i class="mini-photo p4"></i><b>2022 Corolla Cross</b><small>36,000 km · Auto</small><b class="mini-price">R364,900</b></div>
+          </div>
+          <div class="mini-bar"><span><b>R469,900</b><small>≈ R8,950 p/m</small></span><span class="mini-btn wa">WhatsApp</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="feature">
+      <h3>Facebook &amp; Instagram</h3>
+      <p>Your stock as a Facebook vehicle catalogue: ads show the right car to people shopping for one. Set up once, updates itself.</p>
+    </div>
+    <div class="feature">
+      <h3>The car portals</h3>
+      <p>AutoTrader, Cars.co.za, Gumtree, AutoMart: tap Connect and we arrange the stock feed with the portal for you. “Copy ad” gets any car on any portal in a minute.</p>
+    </div>
+    <div class="feature">
+      <h3>Every lead in one place</h3>
+      <p>Website, walk-ins, phone calls. New, contacted, deal done — nobody waits for an answer, nothing gets forgotten.</p>
+    </div>
+    <div class="feature">
+      <h3>Know your numbers</h3>
+      <p>Stock value, days in stock, cars over 60 days, profit on what you sold this month.</p>
+    </div>
+    <div class="feature">
+      <h3>Finance on every car</h3>
+      <p>A monthly payment on every car with your rate and term, a calculator and a finance application form.</p>
+    </div>
+    <div class="feature">
+      <h3>Built for phones</h3>
+      <p>Run the whole dealership from your phone: add cars on the floor, answer leads on the road. No app to install.</p>
+    </div>
+  </section>
+
+  <section class="pricing" id="pricing">
+    <h2>Simple pricing</h2>
+    <div class="plans">
+      <div class="price-card">
+        <p class="plan-name">Pilot</p>
+        <p class="price"><b>R0</b> / {{ config.PILOT_DAYS }} days</p>
+        <p class="muted">per dealership · for your feedback</p>
+        <ul>
+          <li>{{ icon('check') }} Everything in Monthly, free</li>
+          <li>{{ icon('check') }} No card needed</li>
+          <li>{{ icon('check') }} In return, tell us what works and what to improve</li>
+        </ul>
+        <a class="btn big wide" href="{{ url_for('public.signup', plan='pilot') }}">Join the pilot</a>
+      </div>
+      <div class="price-card main">
+        <p class="plan-name">Monthly</p>
+        <p class="price"><b>{{ config.PRICE_MONTHLY }}</b> / month</p>
+        <p class="muted">per dealership · cancel any time</p>
+        <ul>
+          <li>{{ icon('check') }} Your website, in your look, on your domain</li>
+          <li>{{ icon('check') }} Unlimited cars and photos</li>
+          <li>{{ icon('check') }} Facebook &amp; Instagram catalogue, portal feeds</li>
+          <li>{{ icon('check') }} Leads with WhatsApp replies and email alerts</li>
+          <li>{{ icon('check') }} Licence disc scanner, finance calculator, stock figures</li>
+          <li>{{ icon('check') }} Help on WhatsApp when you need it</li>
+        </ul>
+        <a class="btn primary big wide" href="{{ url_for('public.signup') }}">Start {{ config.TRIAL_DAYS }} days free</a>
+      </div>
+      <div class="price-card">
+        <p class="plan-name">Yearly</p>
+        <p class="price"><b>{{ config.PRICE_YEARLY }}</b> / year</p>
+        <p class="muted">per dealership · paid once a year</p>
+        <ul>
+          <li>{{ icon('check') }} Everything in Monthly</li>
+          <li>{{ icon('check') }} About two months free</li>
+        </ul>
+        <a class="btn big wide" href="{{ url_for('public.signup') }}">Start {{ config.TRIAL_DAYS }} days free</a>
+      </div>
+    </div>
+    <p class="muted small center">Portal listing packages (AutoTrader, Cars.co.za, Gumtree) and Facebook ads are paid to them directly.</p>
+  </section>
+
+  <section class="faq">
+    <h2>Questions</h2>
+    <details><summary>Do I need my own domain?</summary><p>No. Your website works on our address straight away. If you have a domain, like joesmotors.co.za, you add one record in its settings and your website opens there — we'll send you the steps.</p></details>
+    <details><summary>Will my cars go on AutoTrader by themselves?</summary><p>Facebook and Instagram: yes, you connect your catalogue yourself in a few minutes. AutoTrader, Cars.co.za, Gumtree and AutoMart take automatic stock only from providers they approve: tap Connect in the app and we arrange it for your account. Until then, “Copy ad” and “Download photos” put a car on any portal in a minute.</p></details>
+    <details><summary>I already have a website.</summary><p>Keep it and link it to your stock page — or point your domain to us and get the whole website with your cars always up to date.</p></details>
+    <details><summary>Is it fast on a phone?</summary><p>Yes. Pages are light, every photo comes in the size the screen needs, and nothing moves around while it loads. Buyers on 4G see your cars in about a second.</p></details>
+    <details><summary>Is my data safe?</summary><p>Your cars and leads are only visible to you. We never sell data or contact your buyers. Registration numbers and what you paid for a car are never shown. See our <a href="{{ url_for('public.privacy') }}">privacy policy</a>.</p></details>
+    <details><summary>How do I pay?</summary><p>By EFT after your free trial — {{ config.PRICE_MONTHLY }} a month, or {{ config.PRICE_YEARLY }} for a year upfront. We'll remind you a few days before the trial ends.</p></details>
+  </section>
+
+  <section class="final-cta">
+    <h2>See it with your own eyes</h2>
+    <p class="muted">The demo is a pretend dealership with cars, leads and a website. Tap around — you can't break anything.</p>
+    <form method="post" action="{{ url_for('public.demo') }}">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <button class="btn primary big">Open the demo</button>
+    </form>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <span>© {{ config.APP_NAME }}</span>
+  <a href="{{ url_for('public.privacy') }}">Privacy</a>
+  {% if support_wa %}<a href="{{ support_wa }}" target="_blank" rel="noopener">WhatsApp us</a>{% endif %}
+  {% if config.SUPPORT_EMAIL %}<a href="mailto:{{ config.SUPPORT_EMAIL }}">{{ config.SUPPORT_EMAIL }}</a>{% endif %}
+</footer>
+{% endblock %}

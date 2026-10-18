@@ -1,0 +1,160 @@
+"""DealerEasy — a website, stock list and enquiries for South African used-car dealers, with auto-posting
+to the car portals."""
+import json
+import os
+import re
+import secrets
+from datetime import timedelta
+from pathlib import Path
+
+from flask import Flask, g, got_request_exception, render_template, request
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+from . import admin, assets, catalog, db, notify, owner, photos, portals, public, seed, site, stock, themes
+from .security import check_csrf, csrf_token
+from .utils import ago, format_phone, local_phone, rand, tel_link, thousands, to_local, wa_link
+
+
+def _secret_key(data_dir: Path) -> str:
+    if os.environ.get("SECRET_KEY"):
+        return os.environ["SECRET_KEY"]
+    path = data_dir / "secret_key"
+    try:
+        fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    except FileExistsError:
+        return path.read_text().strip()
+    key = secrets.token_hex(32)
+    with os.fdopen(fd, "w") as f:
+        f.write(key)
+    return key
+
+
+def _site_host() -> str:
+    """The main address from DOMAIN ("dealereasy.co.za, www.dealereasy.co.za" -> the first), '' for a test by IP."""
+    first = re.split(r"[\s,]+", os.environ.get("DOMAIN", "").strip())[0]
+    return first if "." in first and ":" not in first else ""
+
+
+def _mail_from(app_name: str, smtp_user: str, host: str) -> str:
+    """Gmail sends only as the account that logs in; other services send from the site's domain."""
+    if "@" in smtp_user:
+        return f"{app_name} <{smtp_user}>"
+    return f"{app_name} <noreply@{host}>" if host else ""
+
+
+def create_app(test_config: dict | None = None) -> Flask:
+    app = Flask(__name__, static_folder=None)
+    data_dir = Path(os.environ.get("DATA_DIR", "data")).resolve()
+    if not test_config:
+        data_dir.mkdir(parents=True, exist_ok=True)
+    app_name, host = os.environ.get("APP_NAME", "DealerEasy"), _site_host()
+    smtp_user = os.environ.get("SMTP_USER", "")
+    app.config.update(
+        APP_NAME=app_name,
+        SITE_URL=f"https://{host}" if host else "",
+        DATABASE=str(data_dir / "dealer.db"),
+        MEDIA_DIR=str(data_dir / "media"),
+        ADMIN_PASSWORD=os.environ.get("ADMIN_PASSWORD", ""),
+        PRICE_MONTHLY=os.environ.get("PRICE_MONTHLY", "R499"),
+        PRICE_YEARLY=os.environ.get("PRICE_YEARLY", "R4,990"),
+        SUPPORT_WHATSAPP=os.environ.get("SUPPORT_WHATSAPP", ""),
+        SUPPORT_EMAIL=os.environ.get("SUPPORT_EMAIL", ""),
+        TRIAL_DAYS=int(os.environ.get("TRIAL_DAYS", "30")),
+        PILOT_DAYS=int(os.environ.get("PILOT_DAYS", "60")),
+        THEME=os.environ.get("THEME", "carbon"),
+        NOTIFY_EMAIL=os.environ.get("NOTIFY_EMAIL", ""),
+        MAIL_FROM=os.environ.get("MAIL_FROM") or _mail_from(app_name, smtp_user, host),
+        SMTP_HOST=os.environ.get("SMTP_HOST", ""),
+        SMTP_PORT=int(os.environ.get("SMTP_PORT") or 587),
+        SMTP_USER=smtp_user,
+        SMTP_PASSWORD=os.environ.get("SMTP_PASSWORD", ""),
+        RATELIMIT_ENABLED=True,
+        SESSION_COOKIE_HTTPONLY=True,
+        SESSION_COOKIE_SAMESITE="Lax",
+        SESSION_COOKIE_SECURE=os.environ.get("COOKIE_SECURE", "0") == "1",
+        PERMANENT_SESSION_LIFETIME=timedelta(days=90),
+        MAX_CONTENT_LENGTH=40 * 1024 * 1024,  # photos: the app shrinks them on the phone, a plain form sends originals
+        MAX_FORM_MEMORY_SIZE=1024 * 1024,
+    )
+    if test_config:
+        app.config.update(test_config)
+    if not app.config.get("SECRET_KEY"):
+        app.config["SECRET_KEY"] = _secret_key(data_dir)
+    Path(app.config["MEDIA_DIR"]).mkdir(parents=True, exist_ok=True)
+
+    # behind Caddy: trust one proxy hop for client IP and https
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
+    db.init_app(app)
+    with app.app_context():
+        conn = db.get_db()
+        with conn:
+            seed.cleanup_demos(conn, Path(app.config["MEDIA_DIR"]))
+
+    static = assets.Static(Path(app.root_path) / "static")
+    app.add_url_rule("/static/<path:filename>", "static", static.send)
+    app.url_defaults(static.add_version)
+
+    app.register_blueprint(public.bp)
+    app.register_blueprint(owner.bp)
+    app.register_blueprint(admin.bp)
+    app.register_blueprint(portals.bp)
+    app.register_blueprint(site.bp)
+
+    app.before_request(site.find_host)
+    app.before_request(check_csrf)
+    got_request_exception.connect(notify.record_error, app)
+    app.cli.add_command(notify.notify_command)
+    app.cli.add_command(notify.report_command)
+    app.jinja_env.globals.update(
+        csrf_token=csrf_token, wa_link=wa_link, tel_link=tel_link, photo_src=photos.src, photo_srcset=photos.srcset,
+        photo_jpeg=photos.jpeg, catalog=catalog, statuses=stock.STATUSES,
+    )
+    app.jinja_env.filters.update(rand=rand, km=thousands, phone=format_phone, local_phone=local_phone, ago=ago,
+                                 num=lambda v: f"{v:g}", json_attr=lambda v: json.dumps(v, separators=(",", ":")))
+
+    @app.template_filter("local")
+    def local_filter(value, fmt="%d %b %H:%M"):
+        dt = to_local(value, g.tz) if value and "tz" in g else None
+        return dt.strftime(fmt) if dt else ""
+
+    @app.context_processor
+    def theme():
+        return {"theme": themes.current(), "themes": themes.THEMES, "theme_css": themes.css}
+
+    @app.context_processor
+    def support_link():
+        number = app.config["SUPPORT_WHATSAPP"]
+        return {"support_wa": wa_link(number, f"Hi! I have a question about {app.config['APP_NAME']}.") if number else ""}
+
+    @app.after_request
+    def security_headers(resp):
+        resp.headers.setdefault("X-Content-Type-Options", "nosniff")
+        resp.headers.setdefault("X-Frame-Options", "DENY")
+        resp.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        resp.headers.setdefault(
+            "Content-Security-Policy",
+            "default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'wasm-unsafe-eval'; frame-ancestors 'none'; base-uri 'self'",
+            # wasm: the licence disc scanner; blob: photo previews before upload
+        )
+        return resp
+
+    @app.after_request
+    def revalidate_pages(resp):
+        """A page that hasn't changed comes back as a tiny 304 and the phone shows the copy it has."""
+        if request.method == "GET" and resp.status_code == 200 and resp.mimetype == "text/html":
+            resp.cache_control.private = True
+            resp.cache_control.no_cache = True
+            resp.add_etag(weak=True)  # weak: Caddy rewrites a strong one when it compresses the page
+            resp.make_conditional(request)
+        return resp
+
+    @app.errorhandler(400)
+    @app.errorhandler(404)
+    @app.errorhandler(413)
+    @app.errorhandler(429)
+    def error_page(err):
+        return render_template("error.html", error=err), err.code
+
+    return app

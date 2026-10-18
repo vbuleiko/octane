@@ -1,0 +1,55 @@
+{% extends "app/layout.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}Business{% endblock %}
+{% block top_left %}<a class="topbar-back" href="{{ url_for('owner.settings') }}">{{ icon('back') }} Business</a>{% endblock %}
+{% block content %}
+{% set t = g.tenant %}
+{% set f = request.form if request.method == 'POST' else {} %}
+<form method="post" class="stack">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <section class="card stack">
+    <label class="field"><span>Dealership name</span><input name="name" value="{{ f.name or t.name }}" required maxlength="60"></label>
+    <div class="grid2">
+      <label class="field"><span>WhatsApp</span><input name="phone" value="{{ f.phone or t.phone|local_phone }}" type="tel" placeholder="082 123 4567"><small class="muted">Buyers message you from your website.</small></label>
+      <label class="field"><span>Phone <em>optional</em></span><input name="landline" value="{{ f.landline or t.landline }}" type="tel" maxlength="30" placeholder="021 123 4567"><small class="muted">Shown as it's typed. Empty: the WhatsApp number.</small></label>
+    </div>
+    <div class="grid2">
+      <label class="field"><span>Email on the website <em>optional</em></span><input name="public_email" value="{{ f.public_email or t.public_email }}" type="email" maxlength="120"></label>
+      <label class="field"><span>Send enquiries to <em>optional</em></span><input name="lead_email" value="{{ f.lead_email or t.lead_email }}" type="email" maxlength="120" placeholder="{{ t.email or '' }}"><small class="muted">Empty: your login email.</small></label>
+    </div>
+  </section>
+
+  <section class="card stack">
+    <h2>Where you are</h2>
+    <label class="field"><span>Address</span><input name="address" value="{{ f.address or t.address }}" maxlength="120" placeholder="12 Main Road, Bellville" autocomplete="street-address"></label>
+    <div class="grid3">
+      <label class="field"><span>City or town</span><input name="city" value="{{ f.city or t.city }}" maxlength="60"></label>
+      <label class="field"><span>Province</span><select name="province"><option value="">—</option>{% for p in provinces %}<option {{ 'selected' if (f.province or t.province) == p }}>{{ p }}</option>{% endfor %}</select></label>
+      <label class="field"><span>Postal code</span><input name="postal_code" value="{{ f.postal_code or t.postal_code }}" inputmode="numeric" maxlength="10"></label>
+    </div>
+    <label class="field"><span>Google Maps link <em>optional</em></span><input name="maps_url" value="{{ f.maps_url or t.maps_url }}" type="url" maxlength="300" placeholder="https://maps.app.goo.gl/..."><small class="muted">The “Directions” button opens it. Empty: Google Maps searches your name and address.</small></label>
+    <label class="field"><span>Map coordinates <em>for Facebook</em></span><input name="coords" value="{{ f.coords or (('%s, %s' % (t.latitude, t.longitude)) if t.latitude is not none else '') }}" inputmode="decimal" maxlength="80" placeholder="-33.9249, 18.4241"><small class="muted">On Google Maps, press and hold on your dealership: the two numbers at the top. Facebook's car catalogue needs them.</small></label>
+  </section>
+
+  <section class="card stack">
+    <h2>Opening hours</h2>
+    {% for i, day, is_open, a, b in rows %}
+    <div class="hours-row">
+      <label class="toggle"><input type="checkbox" name="open_{{ i }}" value="1" {{ 'checked' if is_open }}> {{ day[:3] }}</label>
+      <select name="from_{{ i }}" aria-label="{{ day }} opens">{% for tm in times %}<option {{ 'selected' if tm == a }}>{{ tm }}</option>{% endfor %}</select>
+      <select name="to_{{ i }}" aria-label="{{ day }} closes">{% for tm in times %}<option {{ 'selected' if tm == b }}>{{ tm }}</option>{% endfor %}</select>
+    </div>
+    {% endfor %}
+  </section>
+
+  <details class="card">
+    <summary><b>Region</b> <span class="muted small">phone code and time zone</span></summary>
+    <div class="grid2 top-gap">
+      <label class="field"><span>Country code for phones</span><input name="country_code" value="{{ f.country_code or t.country_code }}" inputmode="numeric" maxlength="4"></label>
+      <label class="field"><span>Time zone</span><select name="timezone">{% for tz in timezones %}<option {{ 'selected' if (f.timezone or t.timezone) == tz }}>{{ tz }}</option>{% endfor %}</select></label>
+    </div>
+  </details>
+
+  <button class="btn primary big wide">Save</button>
+</form>
+{% endblock %}

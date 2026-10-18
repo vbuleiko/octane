@@ -1,0 +1,15 @@
+{% extends "site/layout.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}{% endblock %}
+{% block head %}{{ super() }}<meta name="robots" content="noindex">{% endblock %}
+{% block main %}
+<div class="narrow-page center thanks">
+  <h1>{{ t.name }}</h1>
+  <p class="lead">Our website is being updated. Contact us for the cars we have right now.</p>
+  <div class="row wrap-row center-row">
+    {% if phone_text %}<a class="btn big" href="{{ tel_link(phone_text) }}">{{ icon('phone') }} {{ phone_text }}</a>{% endif %}
+    {% if wa %}<a class="btn wa big" href="{{ wa }}" target="_blank" rel="noopener">{{ icon('chat') }} WhatsApp</a>{% endif %}
+    {% if place %}<a class="btn big" href="{{ map_url }}" target="_blank" rel="noopener">{{ icon('pin') }} {{ place }}</a>{% endif %}
+  </div>
+</div>
+{% endblock %}

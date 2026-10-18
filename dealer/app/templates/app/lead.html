@@ -1,0 +1,43 @@
+{% extends "app/layout.html" %}
+{% from "_macros.html" import icon, photo %}
+{% block page_title %}{{ lead.name }}{% endblock %}
+{% block top_left %}<a class="topbar-back" href="{{ url_for('owner.lead_list') }}">{{ icon('back') }} {{ lead.name }}</a>{% endblock %}
+{% block content %}
+<section class="card stack">
+  <div class="section-head"><h2>{{ lead.kind_label }}</h2><span class="pill pill-{{ lead.status }}">{{ lead.status_label }}</span></div>
+  <dl class="facts">
+    <div><dt>When</dt><dd>{{ lead.created_at|local('%a %d %b %Y, %H:%M') }} · {{ lead.created_at|ago }}</dd></div>
+    {% if lead.phone %}<div><dt>Phone</dt><dd><a href="tel:+{{ lead.phone }}">{{ lead.phone_display }}</a></dd></div>{% endif %}
+    {% if lead.email %}<div><dt>Email</dt><dd><a href="mailto:{{ lead.email }}">{{ lead.email }}</a></dd></div>{% endif %}
+    {% if lead.car_title %}<div><dt>Car</dt><dd>{% if car %}<a href="{{ url_for('owner.edit_car', vid=car.id) }}">{{ lead.car_title }}</a>{% if car.status == 'sold' %} <span class="pill pill-sold">sold</span>{% endif %}{% else %}{{ lead.car_title }}{% endif %}</dd></div>{% endif %}
+    {% for label, value in lead.detail_rows %}<div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>{% endfor %}
+    {% if lead.source != 'website' %}<div><dt>From</dt><dd>{{ {'walk-in': 'Walk-in', 'phone': 'Phone call', 'whatsapp': 'WhatsApp', 'portal': 'A portal', 'other': 'Other'}.get(lead.source, lead.source) }}</dd></div>{% endif %}
+  </dl>
+  {% if lead.message %}<p class="lead-message">{{ lead.message }}</p>{% endif %}
+  {% if pics %}
+  <div class="photo-strip">{% for p in pics %}<a href="{{ photo_jpeg(p, false) }}" target="_blank" rel="noopener">{{ photo(p, '160px', alt='Their car') }}</a>{% endfor %}</div>
+  {% endif %}
+  {% if lead.phone %}
+  <div class="row wrap-row">
+    <a class="btn wa big" href="{{ lead.reply }}" target="_blank" rel="noopener" data-mark="{{ url_for('owner.lead_contacted', lid=lead.id) if lead.status == 'new' else '' }}" data-msg="{{ lead.reply_text }}" data-preview>{{ icon('chat') }} Reply on WhatsApp</a>
+    <a class="btn big" href="tel:+{{ lead.phone }}">{{ icon('phone') }} Call</a>
+  </div>
+  {% endif %}
+</section>
+
+<form method="post" class="card stack">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <fieldset class="field"><legend>Status</legend>
+    <div class="chips">{% for k, label in {'new': 'New', 'contacted': 'Contacted', 'won': 'Deal done', 'lost': 'No deal'}.items() %}<label class="chip"><input type="radio" name="status" value="{{ k }}" {{ 'checked' if lead.status == k }}><span>{{ label }}</span></label>{% endfor %}</div>
+  </fieldset>
+  <label class="field"><span>Notes <em>only you see them</em></span><textarea name="notes" rows="4" maxlength="2000" placeholder="Coming Saturday 10:00 with his wife. Trade-in: 2015 Polo.">{{ lead.notes }}</textarea></label>
+  <button class="btn primary wide">Save</button>
+</form>
+
+{% if others %}
+<section class="card stack">
+  <h2>Earlier from {{ lead.name.split()[0] }}</h2>
+  {% for o in others %}<a class="lead-mini" href="{{ url_for('owner.lead', lid=o.id) }}"><b>{{ o.kind_label }}</b><span class="muted small">{{ o.car_title or o.message|truncate(60) }} · {{ o.created_at|local('%d %b') }}</span><span class="pill pill-{{ o.status }}">{{ o.status_label }}</span></a>{% endfor %}
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "app/layout.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}Website{% endblock %}
+{% block content %}
+<a class="site-link card big-link" href="{{ g.site_url }}" target="_blank" rel="noopener">
+  {{ icon('globe') }}<span><b>{{ g.site_url.split('://')[1].rstrip('/') }}</b><small>{{ on_sale }} car{{ '' if on_sale == 1 else 's' }} for sale · open your website</small></span>{{ icon('external') }}
+</a>
+<div class="row wrap-row share-row">
+  <button type="button" class="btn" data-copy-text="{{ g.site_url }}">{{ icon('copy') }} Copy link</button>
+  <a class="btn" href="{{ wa_link('', 'Have a look at our cars: ' ~ g.site_url) }}" target="_blank" rel="noopener">{{ icon('chat') }} Share on WhatsApp</a>
+</div>
+
+<nav class="menu card">
+  <a href="{{ url_for('owner.settings_theme') }}"><b>Look</b><span>{{ themes[theme].name }} · colours and fonts of your website and app</span></a>
+  <a href="{{ url_for('owner.settings_site') }}"><b>Texts and logo</b><span>{% if logo %}Logo · {% endif %}{{ g.tenant.tagline or 'Tagline' }} · about us · why buy from you</span></a>
+  <a href="{{ url_for('owner.settings_finance') }}"><b>Finance calculator</b><span>{{ ('On · %s%% over %d months' % (g.tenant.finance_rate|num, g.tenant.finance_months)) if g.tenant.finance_on else 'Off' }}</span></a>
+  <a href="{{ url_for('owner.settings_business') }}"><b>Contacts and hours</b><span>{{ g.tenant.phone|local_phone or 'WhatsApp' }} · {{ g.tenant.address or 'address' }}</span></a>
+</nav>
+
+<section class="card stack">
+  <h2>Your own address</h2>
+  {% if g.tenant.domain %}
+  <p>Your website opens on <b>{{ g.tenant.domain }}</b>, your app on <b>{{ g.tenant.domain }}/app</b>.</p>
+  {% else %}
+  <p class="muted">Have a domain such as <b>joesmotors.co.za</b>? Your website can open on it. In your domain's DNS settings add a <b>CNAME</b> record for <b>www</b> pointing to <b>{{ request.host }}</b>, then message us — we switch it on and HTTPS starts by itself.</p>
+  {% if support_wa %}<a class="btn" href="{{ support_wa }}" target="_blank" rel="noopener">{{ icon('chat') }} Message us</a>{% endif %}
+  {% endif %}
+</section>
+{% endblock %}

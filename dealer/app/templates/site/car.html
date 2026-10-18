@@ -1,0 +1,135 @@
+{% extends "site/layout.html" %}
+{% from "_macros.html" import icon, photo %}
+{% from "site/_macros.html" import car_card with context %}
+{% set sold = car.status == 'sold' %}
+{% block page_title %}{{ car.full_title }} · {{ car.price|rand }} · {% endblock %}
+{% block page_description %}{{ car.full_title }}, {{ car.mileage|km }} km{{ ', ' ~ car.transmission|lower if car.transmission }}{{ ', ' ~ car.fuel|lower if car.fuel }} — {{ car.price|rand }} at {{ t.name }}{{ ' in ' ~ t.city if t.city }}.{% endblock %}
+{% block canonical %}{{ page_url }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ car.full_title }} · {{ car.price|rand }}{% endblock %}
+{% block og_image %}{% if car.cover %}<meta property="og:image" content="{{ photo_jpeg(car.cover) }}"><meta property="og:image:width" content="{{ car.cover.width }}"><meta property="og:image:height" content="{{ car.cover.height }}">{% endif %}{% endblock %}
+{% block page_head %}
+{% if car.cover %}<link rel="preload" as="image" imagesrcset="{{ photo_srcset(car.cover) }}" imagesizes="(max-width: 899px) 100vw, 60vw" fetchpriority="high">{% endif %}
+<script type="application/ld+json">{{ json_ld|tojson }}</script>
+{% endblock %}
+{% block main %}
+<nav class="crumbs" aria-label="Breadcrumbs"><a href="{{ su('cars') }}">Cars</a><span>/</span><a href="{{ su('cars', make=car.make) }}">{{ car.make }}</a><span>/</span><a href="{{ su('cars', make=car.make, model=car.model) }}">{{ car.model }}</a></nav>
+
+{% if sold %}<div class="flash sold-note" role="status">This car has been sold. Have a look at the similar cars below — or tell us what you're looking for.</div>{% endif %}
+{% if car.sample %}<div class="flash" role="status">An example car — {{ t.name }}'s own cars will be here.</div>{% endif %}
+
+<div class="car-page">
+  <section class="gallery" data-gallery aria-label="Photos">
+    {% if car.photos %}
+    <div class="gallery-track" tabindex="0">
+      {% for p in car.photos %}
+      <figure class="gallery-slide">{{ photo(p, '(max-width: 899px) 100vw, 60vw', alt=car.full_title ~ ' — photo ' ~ loop.index, eager=loop.first) }}</figure>
+      {% endfor %}
+    </div>
+    {% if car.photos|length > 1 %}
+    <button type="button" class="gallery-btn gallery-prev" data-step="-1" aria-label="Previous photo" hidden>{{ icon('back') }}</button>
+    <button type="button" class="gallery-btn gallery-next" data-step="1" aria-label="Next photo" hidden>{{ icon('next') }}</button>
+    {% endif %}
+    <span class="gallery-count"><span data-current>1</span> / {{ car.photos|length }}</span>
+    <button type="button" class="gallery-btn gallery-full" data-full aria-label="Full screen" hidden>{{ icon('expand') }}</button>
+    {% if sold %}<span class="ribbon">Sold</span>{% elif car.status == 'reserved' %}<span class="ribbon">Reserved</span>{% endif %}
+    {% else %}
+    <div class="gallery-empty">{{ icon('camera') }}<span>Photos coming soon</span></div>
+    {% endif %}
+  </section>
+  {% if car.photos|length > 1 %}
+  <div class="gallery-thumbs" aria-hidden="true">
+    {% for p in car.photos %}<button type="button" data-to="{{ loop.index0 }}" tabindex="-1"><img src="{{ photo_src(p, 400) }}" alt="" width="{{ p.width }}" height="{{ p.height }}" loading="lazy" decoding="async" style="background-color: {{ p.color }}"></button>{% endfor %}
+  </div>
+  {% endif %}
+
+  <section class="car-info">
+    <h1>{{ car.title }}{% if car.variant %} <span class="car-variant">{{ car.variant }}</span>{% endif %}</h1>
+    <p class="car-price-big">{% if sold %}<b>Sold</b>{% else %}<b>{{ car.price|rand }}</b>{% if car.was_price %} <s>{{ car.was_price|rand }}</s>{% endif %}{% endif %}</p>
+    {% if car.finance and not sold %}
+    <p class="car-monthly-big"><a href="{{ su('finance', car=car.id) if car.id > 0 else su('finance', price=car.price) }}">≈ <b>{{ car.finance.monthly|rand }}</b> a month {{ icon('next') }}</a><small>{{ car.finance.months }} months, {{ car.finance.deposit_pct }}% deposit{% if car.finance.balloon_pct %}, {{ car.finance.balloon_pct }}% balloon{% endif %}, {{ car.finance.rate }}% — an estimate, subject to bank approval</small></p>
+    {% endif %}
+    <ul class="key-facts">
+      <li>{{ icon('calendar') }}<span>{{ car.year }}</span></li>
+      <li>{{ icon('gauge') }}<span>{{ car.mileage|km }} km</span></li>
+      {% if car.transmission %}<li>{{ icon('gearbox') }}<span>{{ car.transmission }}</span></li>{% endif %}
+      {% if car.fuel %}<li>{{ icon('fuel') }}<span>{{ car.fuel }}</span></li>{% endif %}
+    </ul>
+    {% if not sold %}
+    <div class="car-actions">
+      {% if car_wa %}<a class="btn wa big" href="{{ car_wa }}" target="_blank" rel="noopener" data-preview data-msg="Hi {{ t.name }}! I'm interested in the {{ car.full_title }} ({{ car.price|rand }}).">{{ icon('chat') }} WhatsApp about this car</a>{% endif %}
+      <a class="btn big" href="#enquire" data-kind="test_drive">{{ icon('key') }} Book a test drive</a>
+      {% if phone_text %}<a class="btn big" href="{{ tel_link(phone_text) }}">{{ icon('phone') }} Call</a>{% endif %}
+    </div>
+    {% endif %}
+    {% if perks and not sold %}<ul class="mini-perks">{% for title, line in perks[:3] %}<li>{{ icon('check') }} {{ title }}</li>{% endfor %}</ul>{% endif %}
+  </section>
+
+  <section class="car-details">
+    <h2>Specs</h2>
+    <dl class="spec-grid">{% for k, val in specs %}<div><dt>{{ k }}</dt><dd>{{ val }}</dd></div>{% endfor %}</dl>
+    {% if car.features %}
+    <h2>Features</h2>
+    <ul class="feature-list">{% for item in car.features %}<li>{{ icon('check') }} {{ item }}</li>{% endfor %}</ul>
+    {% endif %}
+    {% if description %}
+    <h2>Description</h2>
+    <p class="prewrap description">{{ description }}</p>
+    {% endif %}
+    {% if credits %}
+    <p class="muted small credits">Example photos: {% for c in credits %}<a href="{{ c.source_url }}" target="_blank" rel="noopener nofollow">{{ c.author }}</a>, <a href="{{ c.license_url }}" target="_blank" rel="noopener nofollow">{{ c.license }}</a>{{ '; ' if not loop.last }}{% endfor %} — via Wikimedia Commons.</p>
+    {% endif %}
+  </section>
+
+  {% if not sold %}
+  <section class="card enquire" id="enquire">
+    <h2>Interested?</h2>
+    <form method="post" action="{{ su('enquire') }}" class="stack enquiry-form">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="car" value="{{ car.id if car.id > 0 else '' }}">
+      <input type="hidden" name="back" value="{{ request.path }}#enquire">
+      <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
+      <fieldset class="field"><legend>I'd like to</legend>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="kind" value="enquiry" checked><span>Ask about it</span></label>
+          <label class="chip"><input type="radio" name="kind" value="test_drive" id="kind-test-drive"><span>Book a test drive</span></label>
+          {% if finance_on %}<label class="chip"><input type="radio" name="kind" value="finance"><span>Get finance</span></label>{% endif %}
+        </div>
+      </fieldset>
+      <label class="field when-field"><span>When suits you?</span><input name="when" maxlength="60" placeholder="Saturday morning"></label>
+      <div class="grid2">
+        <label class="field"><span>Name</span><input name="name" required maxlength="60" autocomplete="name"></label>
+        <label class="field"><span>Phone</span><input name="phone" type="tel" required placeholder="082 123 4567" autocomplete="tel"></label>
+      </div>
+      <label class="field"><span>Email <em>optional</em></span><input name="email" type="email" maxlength="120" autocomplete="email"></label>
+      <label class="field"><span>Message <em>optional</em></span><textarea name="message" rows="3" maxlength="1000" placeholder="Is it still available? Do you take trade-ins?"></textarea></label>
+      <button class="btn primary big wide">Send to {{ t.name }}</button>
+      <p class="muted small">We'll answer on WhatsApp or by phone. Your details go only to {{ t.name }} — <a href="{{ su('privacy') }}">privacy</a>.</p>
+    </form>
+  </section>
+  {% endif %}
+</div>
+
+{% if similar %}
+<section class="dealer-section">
+  <div class="section-title"><h2>Similar cars</h2><a href="{{ su('cars') }}">All cars {{ icon('next') }}</a></div>
+  <div class="car-grid">{% for c in similar %}{{ car_card(c) }}{% endfor %}</div>
+</section>
+{% endif %}
+
+<dialog class="lightbox" id="lightbox" aria-label="Photos">
+  <button type="button" class="gallery-btn lightbox-close" data-close aria-label="Close">{{ icon('x') }}</button>
+  <div class="lightbox-track"></div>
+  <span class="gallery-count"><span data-current>1</span> / {{ car.photos|length }}</span>
+</dialog>
+{% endblock %}
+
+{% block contact_bar %}
+{% if not sold %}
+<div class="contact-bar">
+  <span class="contact-price"><b>{{ car.price|rand }}</b>{% if car.finance %}<small>≈ {{ car.finance.monthly|rand }} p/m</small>{% endif %}</span>
+  {% if phone_text %}<a class="btn" href="{{ tel_link(phone_text) }}" aria-label="Call">{{ icon('phone') }}</a>{% endif %}
+  {% if car_wa %}<a class="btn wa" href="{{ car_wa }}" target="_blank" rel="noopener" data-preview data-msg="Hi {{ t.name }}! I'm interested in the {{ car.full_title }} ({{ car.price|rand }}).">{{ icon('chat') }} WhatsApp</a>{% endif %}
+</div>
+{% else %}{{ super() }}{% endif %}
+{% endblock %}

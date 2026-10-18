@@ -1,0 +1,33 @@
+{% extends "site/layout.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}Contact · {% endblock %}
+{% block canonical %}{{ pu('contact') }}{% endblock %}
+{% block main %}
+<div class="narrow-page">
+  <h1>Contact us</h1>
+  <section class="card stack contact-card">
+    {% if place %}<a class="contact-line" href="{{ map_url }}" target="_blank" rel="noopener">{{ icon('pin') }}<span><b>{{ place }}</b><small>Directions on Google Maps</small></span></a>{% endif %}
+    {% if phone_text %}<a class="contact-line" href="{{ tel_link(phone_text) }}">{{ icon('phone') }}<span><b>{{ phone_text }}</b><small>Call us</small></span></a>{% endif %}
+    {% if wa %}<a class="contact-line" href="{{ wa }}" target="_blank" rel="noopener" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }}<span><b>WhatsApp</b><small>{{ t.phone|local_phone }}</small></span></a>{% endif %}
+    {% if t.public_email %}<a class="contact-line" href="mailto:{{ t.public_email }}">{{ icon('mail') }}<span><b>{{ t.public_email }}</b><small>Email</small></span></a>{% endif %}
+    <div class="contact-line">{{ icon('clock') }}<span><b><i class="open-dot {{ 'is-open' if open_now }}"></i> {{ open_text }}</b><ul class="hours-list">{% for name, text in hours_rows %}<li><span>{{ name }}</span><span>{{ text }}</span></li>{% endfor %}</ul></span></div>
+  </section>
+
+  <section class="card stack" id="message">
+    <h2>Send a message</h2>
+    <form method="post" action="{{ su('enquire') }}" class="stack">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="kind" value="contact">
+      <input type="hidden" name="back" value="{{ request.path }}#message">
+      <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
+      <div class="grid2">
+        <label class="field"><span>Name</span><input name="name" required maxlength="60" autocomplete="name"></label>
+        <label class="field"><span>Phone</span><input name="phone" type="tel" required placeholder="082 123 4567" autocomplete="tel"></label>
+      </div>
+      <label class="field"><span>Email <em>optional</em></span><input name="email" type="email" maxlength="120" autocomplete="email"></label>
+      <label class="field"><span>Message</span><textarea name="message" rows="4" maxlength="1000" placeholder="Looking for a diesel double cab under R350,000"></textarea></label>
+      <button class="btn primary big wide">Send</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

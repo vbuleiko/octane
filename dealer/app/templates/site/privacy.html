@@ -1,0 +1,17 @@
+{% extends "site/layout.html" %}
+{% block page_title %}Privacy · {% endblock %}
+{% block canonical %}{{ pu('privacy') }}{% endblock %}
+{% block main %}
+<div class="narrow-page prose">
+  <h1>Privacy</h1>
+  <p class="muted">How {{ t.name }} handles your information, in line with the Protection of Personal Information Act (POPIA).</p>
+  <h2>What we collect</h2>
+  <p>When you send us an enquiry, book a test drive, ask about finance or offer us your car, we keep what you give us: your name, phone number, email if you add it, your message, the car you asked about, and — for finance or selling a car — the answers and photos you choose to send.</p>
+  <h2>What we use it for</h2>
+  <p>Only to answer you and help you buy, finance or sell a car. With your agreement, we pass finance applications to banks. We don't sell your information or add you to marketing lists.</p>
+  <h2>Your rights</h2>
+  <p>You can ask us what we hold about you, and ask us to correct or delete it{% if t.public_email %}: <a href="mailto:{{ t.public_email }}">{{ t.public_email }}</a>{% elif phone_text %}: {{ phone_text }}{% endif %}.</p>
+  <h2>Who runs this website</h2>
+  <p>{{ t.name }} is responsible for your information. The website runs on {{ config.APP_NAME }}, which stores it securely for us and doesn't use it for anything else.</p>
+</div>
+{% endblock %}

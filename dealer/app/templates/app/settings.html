@@ -1,0 +1,18 @@
+{% extends "app/layout.html" %}
+{% block page_title %}Settings{% endblock %}
+{% block content %}
+<nav class="menu card">
+  <a href="{{ url_for('owner.settings_business') }}"><b>Business</b><span>Name, WhatsApp, phone, emails, address, opening hours</span></a>
+  <a href="{{ url_for('owner.settings_site') }}"><b>Website texts and logo</b><span>Tagline, about us, why buy from you, text under every car, WhatsApp answer</span></a>
+  <a href="{{ url_for('owner.settings_finance') }}"><b>Finance calculator</b><span>Rate, term, deposit and balloon</span></a>
+  <a href="{{ url_for('owner.settings_theme') }}"><b>Look</b><span>{{ themes[theme].name }} · your website and app</span></a>
+  <a href="{{ url_for('owner.settings_account') }}"><b>Account</b><span>Subscription and password</span></a>
+</nav>
+
+<p class="muted small center">Tip: open this page in your phone's browser and choose <b>Add to Home Screen</b> — it works like an app.</p>
+
+<form method="post" action="{{ url_for('public.logout') }}" class="center">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <button class="btn ghost">{{ 'Exit demo' if g.tenant.is_demo else 'Log out' }}</button>
+</form>
+{% endblock %}

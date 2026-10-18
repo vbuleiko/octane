@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% from "_macros.html" import flashes %}
+{% block title %}Admin · {{ config.APP_NAME }}{% endblock %}
+{% block body_class %}site admin{% endblock %}
+{% block head %}<meta name="robots" content="noindex">{% endblock %}
+{% block body %}
+<header class="site-nav">
+  <span class="logo">{{ config.APP_NAME }} admin</span>
+  <form method="post" action="{{ url_for('admin.logout') }}">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <button class="btn ghost">Log out</button>
+  </form>
+</header>
+<main class="admin-wrap">
+  {{ flashes() }}
+  <section class="stats">
+    <div class="stat"><b>{{ stats.total }}</b><span>dealers</span></div>
+    <div class="stat"><b>{{ stats.paid }}</b><span>paying</span></div>
+    <div class="stat"><b>{{ stats.trial }}</b><span>on trial</span></div>
+    <div class="stat"><b>{{ stats.expired }}</b><span>expired</span></div>
+    <div class="stat"><b>{{ stats.on_sale }}</b><span>cars for sale</span></div>
+    <div class="stat"><b>{{ stats.leads_30d }}</b><span>leads, 30 days</span></div>
+    <div class="stat"><b>{{ stats.demos_24h }}</b><span>demos, 24 h</span></div>
+    <div class="stat"><b>{{ stats.prospects }}</b><span>no owner yet</span></div>
+  </section>
+
+  <section class="card" id="portals">
+    <h2>Portal connections to set up{% if requests %} · {{ requests|length }}{% endif %}</h2>
+    <p class="muted small">AutoTrader, Cars.co.za, Gumtree, AutoMart and SearchMyRide take automatic stock only from feed providers they approved. When a dealer asks, arrange it with the portal (their dealer account + our feed), give the portal the dealer's feed address below, then mark it connected. Until a portal asks for its own format, the feed is our general XML: every car for sale with photos, prices and specs.</p>
+    {% for r in requests %}
+    <div class="request">
+      <div><b>{{ r.name }}</b> → <b>{{ r.portal }}</b> <span class="muted small">asked {{ r.requested_at[:16] }} UTC · {{ r.email or 'no owner yet' }} · <a href="{{ wa_link(r.phone) }}" target="_blank" rel="noopener">{{ r.phone|phone }}</a></span></div>
+      <div class="muted small">Their account: {{ r.account or '—' }}{% if r.note %} · “{{ r.note }}”{% endif %}</div>
+      <div class="copy-row"><input value="{{ r.feed_url }}" readonly aria-label="Feed for {{ r.portal }}" data-copy-src><button type="button" class="btn" data-copy>Copy feed</button></div>
+      <form method="post" action="{{ url_for('admin.portal', tid=r.tenant_id, key=r.channel) }}" class="row wrap-row">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <input name="account" value="{{ r.account }}" placeholder="Dealer id on {{ r.portal }}" aria-label="Dealer id on {{ r.portal }}">
+        <button class="btn primary" name="action" value="connected">Connected</button>
+        <button class="btn ghost" name="action" value="off" data-confirm-form="Cancel {{ r.portal }} for {{ r.name }}?">Cancel</button>
+      </form>
+    </div>
+    {% else %}
+    <p class="empty">No requests.</p>
+    {% endfor %}
+  </section>
+
+  <p class="muted small">Own address: the dealer adds a DNS record <b>CNAME www</b> → <b>{{ request.host }}</b> (for the bare domain: an A record to this server's IP), then you save the address here. HTTPS turns on by itself on the first visit.</p>
+
+  {% for t in tenants %}
+  <article class="card tenant {{ 'inactive' if t.is_disabled }}">
+    <div class="tenant-head">
+      <div>
+        <b>{{ t.name }}</b>{% if t.city %} <span class="muted">· {{ t.city }}</span>{% endif %}
+        <div class="muted small">{{ t.email }} · <a href="{{ wa_link(t.phone) }}" target="_blank" rel="noopener">{{ t.phone|phone }}</a> · joined {{ t.created_at[:10] }}</div>
+      </div>
+      <span class="pill {{ 'pill-won' if t.days_left >= 0 else 'pill-lost' }}">
+        {% if t.is_disabled %}paused{% elif t.days_left < 0 %}expired {{ -t.days_left }}d ago{% else %}{{ t.plan }} · {{ t.days_left }}d left{% endif %}
+      </span>
+    </div>
+    <div class="muted small">
+      {{ t.on_sale }} for sale · {{ t.sold_30d }} sold and {{ t.leads_30d }} lead{{ '' if t.leads_30d == 1 else 's' }} in 30 days
+      · last car added {{ t.last_car[:10] if t.last_car else 'never' }}
+      · last seen {{ t.last_seen_at[:16] if t.last_seen_at else 'never' }} UTC
+      · until {{ t.paid_until }}
+      · <a href="{{ t.page_url }}" target="_blank" rel="noopener">website</a>
+    </div>
+    <div class="row wrap-row">
+      <form method="post" action="{{ url_for('admin.extend', tid=t.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="months" value="1"><button class="btn">+1 month</button></form>
+      <form method="post" action="{{ url_for('admin.extend', tid=t.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="months" value="12"><button class="btn">+12 months</button></form>
+      <form method="post" action="{{ url_for('admin.set_date', tid=t.id) }}" class="row">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <input type="date" name="paid_until" value="{{ t.paid_until }}" aria-label="Active until">
+        <button class="btn">Set</button>
+      </form>
+      <form method="post" action="{{ url_for('admin.open_as', tid=t.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="btn">Open app</button></form>
+      <form method="post" action="{{ url_for('admin.reset_password', tid=t.id) }}" data-confirm="Reset password for {{ t.email }}?"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="btn ghost">Reset password</button></form>
+      <form method="post" action="{{ url_for('admin.set_domain', tid=t.id) }}" class="row">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <div class="prefix-input"><span>https://</span><input name="domain" value="{{ t.domain }}" placeholder="www.theirmotors.co.za" aria-label="Own address" autocapitalize="off" autocomplete="off" spellcheck="false"></div>
+        <button class="btn">Save</button>
+      </form>
+      <form method="post" action="{{ url_for('admin.toggle', tid=t.id) }}" data-confirm="{{ 'Enable' if t.is_disabled else 'Pause' }} {{ t.name }}?"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="btn ghost {{ '' if t.is_disabled else 'danger' }}">{{ 'Enable' if t.is_disabled else 'Pause' }}</button></form>
+    </div>
+  </article>
+  {% else %}
+  <p class="empty">No dealers yet. Share the landing page — or make websites for dealers below.</p>
+  {% endfor %}
+
+  <section class="card" id="prospects">
+    <h2>Dealers that haven't signed up</h2>
+    <p class="muted small">Each gets a website with example cars and its own name, address and WhatsApp. Send the owner the link: they try the looks and tap <b>I like this look</b>. To make it theirs before you call, <b>Open app</b> and add a few of their real cars — the examples disappear as soon as there's one. When they say yes, hand it over with their email. One dealer per line: <b>Name | Address | City | WhatsApp | Google Maps link</b> (the link is optional). A line with the name of a dealer already here updates it.</p>
+    <form method="post" action="{{ url_for('admin.add_prospects') }}" class="stack">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <textarea name="lines" rows="4" placeholder="Joe's Motors | 12 Voortrekker Rd, Bellville | Bellville | 082 123 4567 | https://maps.app.goo.gl/..." aria-label="Dealers, one per line" autocapitalize="off" spellcheck="false" required></textarea>
+      <button class="btn primary">Add</button>
+    </form>
+  </section>
+
+  {% for t in prospects %}
+  {% set link = url_for('site.home', slug=t.slug, _external=True) %}
+  <article class="card tenant {{ 'inactive' if t.is_disabled }}">
+    <div class="tenant-head">
+      <div>
+        <b>{{ t.name }}</b>{% if t.city %} <span class="muted">· {{ t.city }}</span>{% endif %}
+        <div class="muted small">{{ t.address or 'no address' }}{% if t.phone %} · <a href="{{ wa_link(t.phone) }}" target="_blank" rel="noopener">{{ t.phone|phone }}</a>{% endif %} · added {{ t.created_at[:10] }}</div>
+      </div>
+      <span class="pill">{{ 'paused' if t.is_disabled else 'no owner yet' }}</span>
+    </div>
+    <div class="muted small">
+      Website for the owner: <a href="{{ link }}" target="_blank" rel="noopener">{{ link }}</a>
+      · {{ t.on_sale }} own car{{ '' if t.on_sale == 1 else 's' }}{{ ' (shows examples)' if not t.on_sale }}
+      · {{ t.leads_30d }} lead{{ '' if t.leads_30d == 1 else 's' }}
+      · {% if t.maps_url %}<a href="{{ t.maps_url }}" target="_blank" rel="noopener">Google Maps</a>{% else %}no Google Maps link{% endif %}
+      {% if t.phone %}· <a href="{{ wa_link(t.phone, 'Hi! We made a website for ' ~ t.name ~ ' — have a look, you can try different looks: ' ~ link) }}" target="_blank" rel="noopener">send the link on WhatsApp</a>{% endif %}
+    </div>
+    <div class="row wrap-row">
+      <form method="post" action="{{ url_for('admin.open_as', tid=t.id) }}"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="btn">Open app</button></form>
+      <form method="post" action="{{ url_for('admin.hand_over', tid=t.id) }}" class="row hand-over">
+        <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+        <input type="email" name="email" placeholder="Owner's email" aria-label="Owner's email" autocapitalize="off" spellcheck="false" required>
+        <select name="theme" aria-label="Look">
+          {% for key, th in themes.items() %}<option value="{{ key }}" {{ 'selected' if key == (t.theme or default_look) }}>{{ th.name }}</option>{% endfor %}
+        </select>
+        <button class="btn">Hand over</button>
+      </form>
+      <form method="post" action="{{ url_for('admin.toggle', tid=t.id) }}" data-confirm="{{ 'Enable' if t.is_disabled else 'Pause' }} {{ t.name }}?"><input type="hidden" name="csrf" value="{{ csrf_token() }}"><button class="btn ghost {{ '' if t.is_disabled else 'danger' }}">{{ 'Enable' if t.is_disabled else 'Pause' }}</button></form>
+    </div>
+  </article>
+  {% endfor %}
+</main>
+{% endblock %}

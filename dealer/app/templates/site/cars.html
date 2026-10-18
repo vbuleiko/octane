@@ -1,0 +1,79 @@
+{% extends "site/layout.html" %}
+{% from "_macros.html" import icon %}
+{% from "site/_macros.html" import car_card with context %}
+{% set heading = ((f.make ~ ' ' ~ f.model)|trim or (f.body ~ 's' if f.body else '') or 'Used cars') %}
+{% block page_title %}{{ heading }} for sale{{ ' in ' ~ t.city if t.city }} · {% endblock %}
+{% block page_description %}{{ r.count }} {{ heading|lower if heading == 'Used cars' else heading }} for sale at {{ t.name }}{{ ' in ' ~ t.city if t.city }}. Photos, prices and monthly payments.{% endblock %}
+{% block canonical %}{{ pu('cars') }}{% endblock %}
+{% block main %}
+<div class="stock-page">
+  <div class="stock-head">
+    <h1>{{ heading }} <small>{{ r.count }} of {{ total }}</small></h1>
+    <form method="get" class="sort-form" data-autosubmit>
+      {% for k in ('q', 'make', 'model', 'body', 'fuel', 'transmission', 'price', 'year', 'km') if f[k] %}<input type="hidden" name="{{ k }}" value="{{ f[k] }}">{% endfor %}
+      <label class="sr-only" for="sort">Sort</label>
+      <select name="sort" id="sort">{% for k, label in sorts.items() %}<option value="{{ k }}" {{ 'selected' if f.sort == k }}>{{ label }}</option>{% endfor %}</select>
+      <noscript><button class="btn">Sort</button></noscript>
+    </form>
+  </div>
+
+  <details class="filters card" {{ 'open' if f.make or f.body or f.price or f.fuel or f.transmission or f.year or f.km or f.q }} id="filters">
+    <summary>{{ icon('sliders') }} Filters{% set n = [f.make, f.model, f.body, f.fuel, f.transmission, f.price, f.year, f.km, f.q]|select|list|length %}{% if n %} <b class="count">{{ n }}</b>{% endif %}</summary>
+    <form method="get" class="filter-form" data-autosubmit>
+      <label class="field wide-field"><span>Search</span><input type="search" name="q" value="{{ f.q }}" placeholder="E.g. Polo, double cab, white" enterkeyhint="search"></label>
+      <label class="field"><span>Make</span>
+        <select name="make"><option value="">Any</option>{% for v, n in r.facets.make %}<option value="{{ v }}" {{ 'selected' if f.make|lower == v|lower }}>{{ v }} ({{ n }})</option>{% endfor %}</select>
+      </label>
+      {% if f.make %}
+      <label class="field"><span>Model</span>
+        <select name="model"><option value="">Any</option>{% for v, n in r.facets.model %}<option value="{{ v }}" {{ 'selected' if f.model|lower == v|lower }}>{{ v }} ({{ n }})</option>{% endfor %}</select>
+      </label>
+      {% endif %}
+      <label class="field"><span>Body</span>
+        <select name="body"><option value="">Any</option>{% for v, n in r.facets.body %}<option value="{{ v }}" {{ 'selected' if f.body|lower == v|lower }}>{{ v }} ({{ n }})</option>{% endfor %}</select>
+      </label>
+      <label class="field"><span>Price up to</span>
+        <select name="price"><option value="">Any</option>{% for p in price_steps %}<option value="{{ p }}" {{ 'selected' if f.price == p }}>{{ p|rand }}</option>{% endfor %}</select>
+      </label>
+      <label class="field"><span>Year from</span>
+        <select name="year"><option value="">Any</option>{% for y in r.years %}<option {{ 'selected' if f.year == y }}>{{ y }}</option>{% endfor %}</select>
+      </label>
+      <label class="field"><span>Mileage up to</span>
+        <select name="km"><option value="">Any</option>{% for k in km_steps %}<option value="{{ k }}" {{ 'selected' if f.km == k }}>{{ k|km }} km</option>{% endfor %}</select>
+      </label>
+      <label class="field"><span>Transmission</span>
+        <select name="transmission"><option value="">Any</option>{% for v, n in r.facets.transmission %}<option value="{{ v }}" {{ 'selected' if f.transmission|lower == v|lower }}>{{ v }} ({{ n }})</option>{% endfor %}</select>
+      </label>
+      <label class="field"><span>Fuel</span>
+        <select name="fuel"><option value="">Any</option>{% for v, n in r.facets.fuel %}<option value="{{ v }}" {{ 'selected' if f.fuel|lower == v|lower }}>{{ v }} ({{ n }})</option>{% endfor %}</select>
+      </label>
+      {% if f.sort != 'newest' %}<input type="hidden" name="sort" value="{{ f.sort }}">{% endif %}
+      <div class="filter-actions">
+        <button class="btn primary">Show cars</button>
+        {% if n %}<a class="btn ghost" href="{{ su('cars') }}">Clear</a>{% endif %}
+      </div>
+    </form>
+  </details>
+
+  {% if r.cars %}
+  <div class="car-grid">
+    {% for c in r.cars %}{{ car_card(c, eager=loop.index <= 2) }}{% endfor %}
+  </div>
+  {% else %}
+  <div class="card empty-stock">
+    <h3>No cars match{{ ' “' ~ f.q ~ '”' if f.q }}</h3>
+    <p class="muted">Try fewer filters — or tell us what you're looking for, and we'll find it.</p>
+    <div class="row wrap-row center-row"><a class="btn" href="{{ su('cars') }}">See all cars</a>{% if wa %}<a class="btn wa" href="{{ wa }}" target="_blank" rel="noopener">{{ icon('chat') }} WhatsApp us</a>{% endif %}</div>
+  </div>
+  {% endif %}
+
+  {% if r.pages > 1 %}
+  <nav class="pager" aria-label="Pages">
+    {% set args = request.args.to_dict() %}
+    {% if r.page > 1 %}<a class="btn" href="{{ su('cars', **dict(args, page=r.page - 1)) }}" rel="prev">{{ icon('back') }} Previous</a>{% endif %}
+    <span class="muted">Page {{ r.page }} of {{ r.pages }}</span>
+    {% if r.page < r.pages %}<a class="btn" href="{{ su('cars', **dict(args, page=r.page + 1)) }}" rel="next">Next {{ icon('next') }}</a>{% endif %}
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

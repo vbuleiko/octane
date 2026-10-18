@@ -1,0 +1,73 @@
+{% extends "app/layout.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}Portals{% endblock %}
+{% block content %}
+<p class="lead-in">Add a car once — it goes to your website and every portal that's on. Sold and reserved cars come off by themselves.</p>
+
+<article class="card portal portal-on">
+  <div class="portal-head">{{ icon('globe') }}<div><b>Your website</b><span class="muted small">{{ on_sale }} car{{ '' if on_sale == 1 else 's' }} for sale · Google finds them by itself</span></div><span class="pill pill-won">On</span></div>
+</article>
+
+{% for c in channels %}
+<article class="card portal {{ 'portal-on' if c.status == 'connected' }}" id="{{ c.key }}">
+  <div class="portal-head">
+    {{ icon('megaphone') }}
+    <div><b>{{ c.name }}</b><span class="muted small">{{ c.blurb }}</span></div>
+    <span class="pill {{ {'connected': 'pill-won', 'requested': 'pill-new', 'paused': 'pill-lost'}.get(c.status, '') }}">{{ c.status_label }}</span>
+  </div>
+
+  {% if c.status == 'connected' %}
+    <p class="small">{% if c.fetched_at %}{{ c.name }} last picked up your stock <b>{{ c.fetched_at|ago }}</b>.{% else %}Waiting for {{ c.name }} to pick up your stock for the first time.{% endif %}{% if c.account %} Account: {{ c.account }}.{% endif %}</p>
+  {% elif c.status == 'requested' %}
+    <p class="small">We're connecting it{% if c.requested_at %} (asked {{ c.requested_at|ago }}){% endif %}. We'll let you know on WhatsApp.</p>
+  {% elif c.status == 'paused' %}
+    <p class="small">Paused: your cars are off {{ c.name }}.</p>
+  {% endif %}
+
+  {% if c.self_serve %}
+    {% if c.status in ('connected', 'paused') or not c.status %}
+    <details class="steps-box" {{ 'open' if c.status == 'connected' and not c.fetched_at }}>
+      <summary>How to connect</summary>
+      <ol>{% for s in c.steps %}<li>{{ s|safe }}</li>{% endfor %}</ol>
+      <div class="copy-row"><input value="{{ c.feed_url }}" readonly aria-label="Feed address for {{ c.name }}" data-copy-src><button type="button" class="btn" data-copy>{{ icon('copy') }} Copy</button></div>
+    </details>
+    {% endif %}
+  {% endif %}
+
+  {% if c.key == 'facebook' and c.status == 'connected' and fb_missing %}
+  <p class="small warn-text">Facebook needs your {{ fb_missing|join(', ') }}: add them in <a href="{{ url_for('owner.settings_business') }}">Business settings</a>.</p>
+  {% endif %}
+  {% set action = url_for('owner.portal_update', key=c.key) %}
+  {% if not c.status and not c.self_serve %}
+  <details class="connect-box">
+    <summary class="btn primary">Connect {{ c.name }}</summary>
+    <form method="post" action="{{ action }}" class="stack portal-form">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <label class="field"><span>{{ c.account_label }}</span><input name="account" maxlength="60" autocomplete="off"></label>
+      <label class="field"><span>Anything we should know <em>optional</em></span><input name="note" maxlength="500" placeholder="E.g. we already list 20 cars there by hand"></label>
+      <button class="btn primary" name="action" value="connect">Ask us to connect it</button>
+    </form>
+  </details>
+  {% else %}
+  <form method="post" action="{{ action }}" class="portal-form">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    {% if not c.status %}
+    <button class="btn primary" name="action" value="connect">Switch on</button>
+    {% elif c.status == 'paused' %}
+    <button class="btn" name="action" value="resume">Switch back on</button>
+    {% else %}
+    <button class="btn ghost" name="action" value="pause" data-confirm-form="Take your cars off {{ c.name }}?">Pause</button>
+    {% endif %}
+  </form>
+  {% endif %}
+</article>
+{% endfor %}
+
+<details class="card steps-box">
+  <summary>Another portal or your own developer?</summary>
+  <p class="small muted">Your stock as a feed, always up to date: cars for sale with photos, prices and specs. Give these addresses only to services you trust.</p>
+  {% for fmt, url in feeds.items() %}
+  <div class="copy-row"><input value="{{ url }}" readonly aria-label="{{ fmt|upper }} feed" data-copy-src><button type="button" class="btn" data-copy>{{ icon('copy') }} {{ fmt|upper }}</button></div>
+  {% endfor %}
+</details>
+{% endblock %}

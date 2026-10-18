@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="csrf" content="{{ csrf_token() }}">
+  <title>{% block title %}{{ config.APP_NAME }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}A website, stock list and WhatsApp enquiries for South African car dealers. Add a car once: it's on your website, Facebook and the car portals.{% endblock %}">
+  <meta name="theme-color" content="{{ themes[theme].bg }}">
+  {% block icons %}
+  <link rel="icon" href="{{ url_for('static', filename='icon.svg') }}" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-180.png') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.webmanifest') }}">
+  {% endblock %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% if theme_css(theme) %}<link rel="stylesheet" href="{{ theme_css(theme) }}" id="look-css">{% endif %}
+  {% for font in themes[theme].fonts %}<link rel="preload" href="{{ url_for('static', filename='fonts/' ~ font ~ '.woff2') }}" as="font" type="font/woff2" crossorigin>{% endfor %}
+  {% block script %}<script src="{{ url_for('static', filename='app.js') }}" defer></script>{% endblock %}
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}" {% block body_attrs %}{% endblock %}>
+{% block body %}{% endblock %}
+</body>
+</html>

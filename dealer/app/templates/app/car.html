@@ -1,0 +1,189 @@
+{% extends "app/layout.html" %}
+{% from "_macros.html" import icon %}
+{% set v = form or car or {} %}
+{% block page_title %}{{ car.title if car else 'Add a car' }}{% endblock %}
+{% block top_left %}<a class="topbar-back" href="{{ url_for('owner.stock_list') }}">{{ icon('back') }} {{ car.title if car else 'Add a car' }}</a>{% endblock %}
+{% block top_right %}{% if car and car.status in ('available', 'reserved') %}<a class="btn ghost" href="{{ page_url }}" target="_blank" rel="noopener">{{ icon('eye') }} View</a>{% endif %}{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="stack car-form" id="car-form"
+      action="{{ url_for('owner.edit_car', vid=car.id) if car else url_for('owner.new_car') }}"
+      data-catalog="{{ url_for('owner.catalog_lookup') }}" data-disc="{{ url_for('owner.disc_lookup') }}"
+      data-upload="{{ url_for('owner.upload_photo') }}" data-describe="{{ url_for('owner.describe') }}"
+      data-car="{{ car.id if car else '' }}" data-max="{{ max_photos }}">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+
+  <button type="button" class="btn scan-btn big wide" id="scan-disc" data-decoder="{{ url_for('static', filename='vendor/barcode-detector.js') }}" hidden>{{ icon('scan') }} Scan licence disc</button>
+
+  <section class="card stack" id="photos">
+    <div class="section-head">
+      <h2>Photos</h2>
+      <span class="muted small" id="photo-count">{{ photos|length }} / {{ max_photos }}</span>
+    </div>
+    <div class="photo-grid" id="photo-grid">
+      {% for p in photos %}
+      <figure class="photo-tile" data-id="{{ p.id }}" data-delete="{{ url_for('owner.delete_photo', pid=p.id) }}">
+        <img src="{{ photo_src(p, 400) }}" alt="" width="{{ p.width }}" height="{{ p.height }}" style="background-color: {{ p.color }}" loading="lazy" decoding="async">
+        <input type="hidden" name="photo" value="{{ p.id }}">
+        <figcaption>
+          <button type="button" class="tile-btn" data-move="-1" aria-label="Move left">{{ icon('back') }}</button>
+          <button type="button" class="tile-btn" data-cover aria-label="Make it the main photo">{{ icon('star') }}</button>
+          <button type="button" class="tile-btn" data-move="1" aria-label="Move right">{{ icon('next') }}</button>
+          <button type="button" class="tile-btn danger" data-remove aria-label="Delete photo">{{ icon('trash') }}</button>
+        </figcaption>
+      </figure>
+      {% endfor %}
+      <label class="photo-add" id="photo-add">
+        {{ icon('camera') }}<span>Add photos</span>
+        <input type="file" name="photos" accept="image/*" multiple id="photo-input">
+      </label>
+    </div>
+    <p class="muted small">The first photo is the main one. Front three-quarter, sides, back, interior, dashboard, boot, tyres. Landscape works best.</p>
+  </section>
+
+  <section class="card stack">
+    <h2>The car</h2>
+    <div class="grid2">
+      <label class="field"><span>Make</span>
+        <input name="make" id="make" list="makes" value="{{ v.make or '' }}" required maxlength="30" autocomplete="off" placeholder="Toyota">
+        <datalist id="makes">{% for m in makes %}<option value="{{ m }}">{% endfor %}</datalist>
+      </label>
+      <label class="field"><span>Model</span>
+        <input name="model" id="model" list="models" value="{{ v.model or '' }}" required maxlength="40" autocomplete="off" placeholder="Corolla Cross">
+        <datalist id="models"></datalist>
+      </label>
+    </div>
+    <label class="field"><span>Variant <em>engine, trim, cab</em></span>
+      <input name="variant" id="variant" list="variants" value="{{ v.variant or '' }}" maxlength="60" autocomplete="off" placeholder="1.8 XS CVT">
+      <datalist id="variants"></datalist>
+      <small class="muted" id="variant-hint" hidden></small>
+    </label>
+    <div class="grid3">
+      <label class="field"><span>Year</span><input name="year" value="{{ v.year or '' }}" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" required placeholder="{{ this_year - 4 }}"></label>
+      <label class="field"><span>Mileage, km</span><input name="mileage" value="{{ v.mileage|km if v.mileage else '' }}" inputmode="numeric" placeholder="84 000"></label>
+      <label class="field"><span>Colour</span><input name="colour" list="colours" value="{{ v.colour or '' }}" maxlength="30" placeholder="White"><datalist id="colours">{% for c in catalog.COLOURS %}<option value="{{ c }}">{% endfor %}</datalist></label>
+    </div>
+    <div class="grid2">
+      <label class="field price-field"><span>Price</span><span class="prefix-input"><span>R</span><input name="price" id="price" value="{{ v.price|km if v.price else '' }}" inputmode="numeric" placeholder="189 995"></span></label>
+      <label class="field"><span>Was <em>optional, shown crossed out</em></span><span class="prefix-input"><span>R</span><input name="was_price" value="{{ v.was_price|km if v.was_price else '' }}" inputmode="numeric"></span></label>
+    </div>
+  </section>
+
+  <section class="card stack">
+    <h2>Specs</h2>
+    <fieldset class="field"><legend>Transmission</legend>
+      <div class="chips">{% for t in catalog.TRANSMISSIONS %}<label class="chip"><input type="radio" name="transmission" value="{{ t }}" {{ 'checked' if v.transmission == t }}><span>{{ t }}</span></label>{% endfor %}</div>
+    </fieldset>
+    <fieldset class="field"><legend>Fuel</legend>
+      <div class="chips">{% for t in catalog.FUELS %}<label class="chip"><input type="radio" name="fuel" value="{{ t }}" {{ 'checked' if v.fuel == t }}><span>{{ t }}</span></label>{% endfor %}</div>
+    </fieldset>
+    <fieldset class="field"><legend>Body</legend>
+      <div class="chips">{% for t in catalog.BODIES %}<label class="chip"><input type="radio" name="body" value="{{ t }}" {{ 'checked' if v.body == t }}><span>{{ t }}</span></label>{% endfor %}</div>
+    </fieldset>
+    <div class="grid3">
+      <label class="field"><span>Engine</span><input name="engine" value="{{ v.engine or '' }}" maxlength="20" placeholder="1.4 TSI"></label>
+      <label class="field"><span>Drive</span>
+        <select name="drive"><option value="">—</option>{% for t in catalog.DRIVES %}<option {{ 'selected' if v.drive == t }}>{{ t }}</option>{% endfor %}</select>
+      </label>
+      <label class="field"><span>Service history</span>
+        <select name="service_history"><option value="">—</option>{% for k, label in catalog.SERVICE_HISTORY.items() %}<option value="{{ k }}" {{ 'selected' if v.service_history == k }}>{{ label.split(' service')[0] }}</option>{% endfor %}</select>
+      </label>
+    </div>
+    <div class="grid3">
+      <label class="field"><span>Doors</span><input name="doors" value="{{ v.doors or '' }}" inputmode="numeric" maxlength="1"></label>
+      <label class="field"><span>Seats</span><input name="seats" value="{{ v.seats or '' }}" inputmode="numeric" maxlength="2"></label>
+      <label class="field"><span>Condition</span>
+        <select name="condition">{% for k, label in catalog.CONDITIONS.items() %}<option value="{{ k }}" {{ 'selected' if (v.condition or 'used') == k }}>{{ label }}</option>{% endfor %}</select>
+      </label>
+    </div>
+  </section>
+
+  <section class="card stack">
+    <h2>Features</h2>
+    {% set chosen = v.features or [] %}
+    <div class="chips features">
+      {% for item in catalog.FEATURES %}<label class="chip"><input type="checkbox" name="feature" value="{{ item }}" {{ 'checked' if item in chosen }}><span>{{ item }}</span></label>{% endfor %}
+    </div>
+    {% set extra = chosen|reject('in', catalog.FEATURES)|list %}
+    <label class="field"><span>More <em>comma between them</em></span><input name="more_features" value="{{ extra|join(', ') }}" maxlength="600" placeholder="Towbar, rubberised load bin"></label>
+  </section>
+
+  <section class="card stack">
+    <div class="section-head"><h2>Description</h2><button type="button" class="btn ghost small-btn" id="write-it">{{ icon('pencil') }} Write it for me</button></div>
+    <textarea name="description" id="description" rows="8" maxlength="5000" placeholder="What makes this car a good buy: history, condition, extras.">{{ v.description or '' }}</textarea>
+    {% if g.tenant.desc_footer %}<p class="muted small">Under every description: “{{ g.tenant.desc_footer }}” — <a href="{{ url_for('owner.settings_site') }}">change</a></p>{% endif %}
+  </section>
+
+  <section class="card stack">
+    <h2>On the website</h2>
+    <fieldset class="field"><legend>Status</legend>
+      <div class="chips status-chips">{% for k, label in statuses.items() %}<label class="chip"><input type="radio" name="status" value="{{ k }}" {{ 'checked' if (v.status or 'available') == k }}><span>{{ label }}</span></label>{% endfor %}</div>
+    </fieldset>
+    <label class="toggle"><input type="checkbox" name="featured" value="1" {{ 'checked' if v.featured }}> Show it first on my website</label>
+    <fieldset class="field"><legend>Advertise on</legend>
+      <input type="hidden" name="advertise_shown" value="1">
+      {% if channels %}
+      <div class="chips">{% for c in channels %}<label class="chip"><input type="checkbox" name="advertise" value="{{ c.key }}" {{ '' if c.key in (v.channels_off or []) else 'checked' }}><span>{{ c.name }}</span></label>{% endfor %}</div>
+      {% else %}
+      <p class="muted small">Only your website for now. <a href="{{ url_for('owner.portal_list') }}">Switch on Facebook and the portals</a>.</p>
+      {% endif %}
+    </fieldset>
+  </section>
+
+  <details class="card private" {{ 'open' if v.cost or v.reg_no or v.vin }}>
+    <summary><h2>Only for you</h2><span class="muted small">stock no., registration, VIN, what you paid</span></summary>
+    <div class="stack">
+      <div class="grid2">
+        <label class="field"><span>Stock no.</span><input name="stock_no" value="{{ v.stock_no or '' }}" maxlength="20" placeholder="Automatic"></label>
+        <label class="field"><span>Registration</span><input name="reg_no" id="reg_no" value="{{ v.reg_no or '' }}" maxlength="16" class="upper" placeholder="CA 123-456"></label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span>VIN</span><input name="vin" id="vin" value="{{ v.vin or '' }}" maxlength="17" class="upper" autocapitalize="characters" spellcheck="false"></label>
+        <label class="field"><span>Engine no.</span><input name="engine_no" id="engine_no" value="{{ v.engine_no or '' }}" maxlength="20" class="upper" spellcheck="false"></label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span>Bought for</span><span class="prefix-input"><span>R</span><input name="cost" id="cost" value="{{ v.cost|km if v.cost else '' }}" inputmode="numeric"></span></label>
+        <label class="field"><span>Spent on it <em>repairs, valet, licence</em></span><span class="prefix-input"><span>R</span><input name="recon" id="recon" value="{{ v.recon|km if v.recon else '' }}" inputmode="numeric"></span></label>
+      </div>
+      <p class="profit" id="profit" {% if not v.cost %}hidden{% endif %}>Profit at this price: <b>{{ (v.price - v.cost - v.recon)|rand if v.cost else '' }}</b></p>
+      <p class="muted small">VIN goes to the portals that need it. Registration, engine number and prices you paid are never shown to anyone.</p>
+    </div>
+  </details>
+
+  <div class="save-bar">
+    <button class="btn primary big wide">{{ 'Save' if car else 'Save the car' }}</button>
+  </div>
+</form>
+
+{% if car %}
+{% if car.photos and car.status in ('available', 'reserved') %}
+<section class="card stack" id="by-hand">
+  <h2>Put it on another portal by hand</h2>
+  <p class="muted small">For AutoTrader Connect, Facebook Marketplace or a WhatsApp status: copy the ad, then add the photos.</p>
+  <textarea class="ad-text" rows="6" readonly data-copy-src aria-label="Ad text">{{ ad_text }}</textarea>
+  <div class="row wrap-row">
+    <button type="button" class="btn" data-copy>{{ icon('copy') }} Copy ad</button>
+    <a class="btn" href="{{ url_for('owner.photos_zip', vid=car.id) }}" data-share-photos='{{ share_urls|tojson }}' data-title="{{ car.full_title }}">{{ icon('image') }} Save photos</a>
+  </div>
+</section>
+{% endif %}
+{% if leads %}
+<section class="card stack">
+  <h2>Enquiries about this car</h2>
+  {% for l in leads %}
+  <a class="lead-mini" href="{{ url_for('owner.lead', lid=l.id) }}"><b>{{ l.name }}</b><span class="muted small">{{ l.kind_label }} · {{ l.created_at|local }}</span><span class="pill pill-{{ l.status }}">{{ l.status_label }}</span></a>
+  {% endfor %}
+</section>
+{% endif %}
+<p class="muted small center">Added {{ car.created_at|local('%d %b %Y') }}{% if days is not none %} · {{ days }} day{{ '' if days == 1 else 's' }} {{ 'to sell' if car.status == 'sold' else 'in stock' }}{% endif %}</p>
+<form method="post" action="{{ url_for('owner.delete_car', vid=car.id) }}" class="center" data-confirm="Delete {{ car.full_title }} with its photos? If it's sold, mark it as Sold instead: it then counts in your figures.">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <button class="btn ghost danger">{{ icon('trash') }} Delete this car</button>
+</form>
+{% endif %}
+
+<dialog id="scan-dialog" class="sheet scanner">
+  <div class="scan-view"><video playsinline muted></video><div class="scan-frame"></div></div>
+  <p class="scan-hint" id="scan-hint"></p>
+  <div class="row"><button type="button" class="btn" data-close>Cancel</button></div>
+</dialog>
+{% endblock %}

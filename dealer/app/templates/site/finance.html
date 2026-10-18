@@ -1,0 +1,52 @@
+{% extends "site/layout.html" %}
+{% from "_macros.html" import icon %}
+{% block page_title %}Car finance · {% endblock %}
+{% block page_description %}Work out your monthly car payment and apply for finance at {{ t.name }}. We apply at all the major banks for you.{% endblock %}
+{% block canonical %}{{ pu('finance') }}{% endblock %}
+{% block main %}
+<div class="narrow-page">
+  <h1>Car finance</h1>
+  <p class="lead">Work out the monthly payment, then apply — we take it to the banks for you.</p>
+
+  <form method="get" class="card stack calc" id="calc" data-calc>
+    {% if picked %}<input type="hidden" name="car" value="{{ picked.id }}"><p class="calc-car">{{ icon('car') }} <b>{{ picked.full_title }}</b></p>{% endif %}
+    <div class="grid2">
+      <label class="field"><span>Car price</span><span class="prefix-input"><span>R</span><input name="price" value="{{ calc.price|km }}" inputmode="numeric" {{ 'readonly' if picked }}></span></label>
+      <label class="field"><span>Deposit</span><span class="prefix-input"><span>R</span><input name="deposit" value="{{ calc.deposit|km }}" inputmode="numeric"></span></label>
+    </div>
+    <div class="grid3">
+      <label class="field"><span>Term</span><select name="months">{% for m in terms %}<option value="{{ m }}" {{ 'selected' if m == calc.months }}>{{ m }} months</option>{% endfor %}</select></label>
+      <label class="field"><span>Interest, %</span><input name="rate" value="{{ calc.rate }}" inputmode="decimal" maxlength="5"></label>
+      <label class="field"><span>Balloon, %</span><input name="balloon" value="{{ calc.balloon_pct }}" inputmode="numeric" maxlength="2"></label>
+    </div>
+    <p class="calc-result"><span>About</span><b data-monthly>{{ calc.monthly|rand }}</b><span>a month</span></p>
+    <noscript><button class="btn">Work it out</button></noscript>
+    <p class="muted small">An estimate only: the bank sets your rate after a credit check. Licence, registration and fees may be added.</p>
+  </form>
+
+  <section class="card stack" id="apply">
+    <h2>Apply for finance</h2>
+    <p class="muted small">No obligation. We'll call you to finish the application with the banks.</p>
+    <form method="post" action="{{ su('enquire') }}" class="stack">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="kind" value="finance">
+      <input type="hidden" name="back" value="{{ request.full_path }}#apply">
+      {% if picked %}<input type="hidden" name="car" value="{{ picked.id }}">{% endif %}
+      <div class="hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off"></label></div>
+      <div class="grid2">
+        <label class="field"><span>Name</span><input name="name" required maxlength="60" autocomplete="name"></label>
+        <label class="field"><span>Phone</span><input name="phone" type="tel" required placeholder="082 123 4567" autocomplete="tel"></label>
+      </div>
+      <label class="field"><span>Email <em>optional</em></span><input name="email" type="email" maxlength="120" autocomplete="email"></label>
+      <div class="grid2">
+        <label class="field"><span>Work</span><select name="employment"><option value="">—</option>{% for e in ('Employed full-time', 'Employed part-time', 'Self-employed', 'Pensioner', 'Other') %}<option>{{ e }}</option>{% endfor %}</select></label>
+        <label class="field"><span>Monthly income <em>optional</em></span><span class="prefix-input"><span>R</span><input name="income" inputmode="numeric"></span></label>
+      </div>
+      <label class="field"><span>Deposit you have <em>optional</em></span><span class="prefix-input"><span>R</span><input name="deposit" value="{{ calc.deposit|km if calc.deposit else '' }}" inputmode="numeric"></span></label>
+      <label class="field"><span>Message <em>optional</em></span><textarea name="message" rows="3" maxlength="1000" placeholder="{{ 'The car I want: ...' if not picked else 'Anything we should know' }}"></textarea></label>
+      <button class="btn primary big wide">Send</button>
+      <p class="muted small">We don't ask for your ID or bank details here. Your details go only to {{ t.name }} — <a href="{{ su('privacy') }}">privacy</a>.</p>
+    </form>
+  </section>
+</div>
+{% endblock %}
