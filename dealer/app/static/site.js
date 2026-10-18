@@ -8,6 +8,13 @@
   document.addEventListener("click", (e) => {
     const close = e.target.closest("[data-close]");
     if (close) { close.closest("dialog").close(); return; }
+    const tap = e.target.closest("[data-tap]");
+    if (tap && navigator.sendBeacon && document.body.dataset.tapUrl) {  // the dealer sees how many buyers got in touch
+      const body = new FormData();
+      body.append("kind", tap.dataset.tap);
+      if (tap.dataset.car) body.append("car", tap.dataset.car);
+      navigator.sendBeacon(document.body.dataset.tapUrl, body);
+    }
     const pv = e.target.closest("[data-preview]");
     if (pv && isDemo && preview) {
       e.preventDefault();

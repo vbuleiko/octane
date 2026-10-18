@@ -7,8 +7,8 @@
   <h1>Contact us</h1>
   <section class="card stack contact-card">
     {% if place %}<a class="contact-line" href="{{ map_url }}" target="_blank" rel="noopener">{{ icon('pin') }}<span><b>{{ place }}</b><small>Directions on Google Maps</small></span></a>{% endif %}
-    {% if phone_text %}<a class="contact-line" href="{{ tel_link(phone_text) }}">{{ icon('phone') }}<span><b>{{ phone_text }}</b><small>Call us</small></span></a>{% endif %}
-    {% if wa %}<a class="contact-line" href="{{ wa }}" target="_blank" rel="noopener" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }}<span><b>WhatsApp</b><small>{{ t.phone|local_phone }}</small></span></a>{% endif %}
+    {% if phone_text %}<a class="contact-line" href="{{ tel_link(phone_text) }}" data-tap="calls"{% if car is defined and car.id %} data-car="{{ car.id }}"{% endif %}>{{ icon('phone') }}<span><b>{{ phone_text }}</b><small>Call us</small></span></a>{% endif %}
+    {% if wa %}<a class="contact-line" href="{{ wa }}" target="_blank" rel="noopener" data-tap="whatsapp" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }}<span><b>WhatsApp</b><small>{{ t.phone|local_phone }}</small></span></a>{% endif %}
     {% if t.public_email %}<a class="contact-line" href="mailto:{{ t.public_email }}">{{ icon('mail') }}<span><b>{{ t.public_email }}</b><small>Email</small></span></a>{% endif %}
     <div class="contact-line">{{ icon('clock') }}<span><b><i class="open-dot {{ 'is-open' if open_now }}"></i> {{ open_text }}</b><ul class="hours-list">{% for name, text in hours_rows %}<li><span>{{ name }}</span><span>{{ text }}</span></li>{% endfor %}</ul></span></div>
   </section>

@@ -23,7 +23,7 @@ from flask import (
     url_for,
 )
 
-from . import accounts, catalog, hours, leads, photos, samples, seed, stock, themes
+from . import accounts, catalog, hours, leads, photos, samples, seed, stats, stock, themes
 from .db import get_db
 from .security import client_ip, limiter
 from .utils import (
@@ -181,6 +181,12 @@ def _render(template: str, tenant, **context):
     return render_template(template, **_common(tenant), **context)
 
 
+def _count(tenant, vehicle_id: int = 0):
+    """A visitor's view: not robots or link previews, not the dealer looking at their own website."""
+    if stats.counts_visitor() and not accounts.is_prospect(tenant) and not _owner_view(tenant):
+        stats.add(get_db(), tenant, vehicle_id)
+
+
 def _add_finance(tenant, cars: list[dict]) -> list[dict]:
     for c in cars:
         c["finance"] = stock.finance(tenant, c["price"])
@@ -191,6 +197,7 @@ def _add_finance(tenant, cars: list[dict]) -> list[dict]:
 
 def home_page(tenant):
     use(tenant)
+    _count(tenant)
     cars = _stock(tenant)
     makes = sorted({c["make"] for c in cars})
     bodies = [b for b in catalog.BODIES if any(c["body"] == b for c in cars)]
@@ -207,6 +214,7 @@ def home(slug=None):
 
 def cars(slug=None):
     tenant = _tenant(slug)
+    _count(tenant)
     all_cars = _stock(tenant)
     f = stock.parse_filters(request.args)
     result = stock.search(all_cars, f)
@@ -225,6 +233,7 @@ def car(car, slug=None):
         found = next((c for c in all_cars if c["slug"] == car), None)
     if found is None:
         abort(404)
+    _count(tenant, found["id"])
     page_url = public_url(tenant, "car", car=found["slug"])
     found["finance"] = stock.finance(tenant, found["price"])
     title = found["full_title"]
@@ -381,6 +390,20 @@ def _sell_photos(tenant, lead_id: int):
                        (tenant["id"], lead_id, saved["key"], saved["width"], saved["height"], saved["color"], i, ts()))
 
 
+def tap(slug=None):
+    """A tap on WhatsApp or Call (site.js sends it with sendBeacon): counted for the dealer's figures."""
+    tenant = _tenant(slug)
+    kind = request.form.get("kind", "")
+    car_id = int(request.form["car"]) if is_number(request.form.get("car", "")) else 0
+    if kind in ("whatsapp", "calls") and stats.counts_visitor() and not _owner_view(tenant) \
+            and limiter.allow(f"tap:{tenant['id']}:{client_ip()}", 30, 3600):
+        if car_id and not get_db().execute("SELECT 1 FROM vehicles WHERE id = ? AND tenant_id = ?",
+                                           (car_id, tenant["id"])).fetchone():
+            car_id = 0
+        stats.add(get_db(), tenant, car_id, kind)
+    return ("", 204)
+
+
 def pick(slug=None):
     """"I like this look" on a website we made: a WhatsApp to us with the dealer and the look."""
     tenant = _tenant(slug)
@@ -400,6 +423,8 @@ for _endpoint, _path in PAGES.items():
 bp.add_url_rule("/site/<slug>/enquire", "enquire", enquire, methods=["POST"])
 bp.add_url_rule("/enquire", "enquire_d", enquire, methods=["POST"])
 bp.add_url_rule("/site/<slug>/pick", "pick", pick)
+bp.add_url_rule("/site/<slug>/tap", "tap", tap, methods=["POST"])
+bp.add_url_rule("/tap", "tap_d", tap, methods=["POST"])
 
 
 @bp.before_request

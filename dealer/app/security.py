@@ -16,8 +16,11 @@ def csrf_token() -> str:
     return token
 
 
+CSRF_FREE = {"site.tap", "site.tap_d"}  # a counter that sendBeacon bumps: nothing to protect
+
+
 def check_csrf():
-    if request.method not in ("POST", "PUT", "PATCH", "DELETE"):
+    if request.method not in ("POST", "PUT", "PATCH", "DELETE") or request.endpoint in CSRF_FREE:
         return
     sent = request.form.get("csrf") or request.headers.get("X-CSRF", "")
     token = session.get("csrf", "")

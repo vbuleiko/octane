@@ -5,6 +5,24 @@
 {% block top_left %}<a class="topbar-back" href="{{ url_for('owner.stock_list') }}">{{ icon('back') }} {{ car.title if car else 'Add a car' }}</a>{% endblock %}
 {% block top_right %}{% if car and car.status in ('available', 'reserved') %}<a class="btn ghost" href="{{ page_url }}" target="_blank" rel="noopener">{{ icon('eye') }} View</a>{% endif %}{% endblock %}
 {% block content %}
+{% if car and not form %}
+<form method="post" action="{{ url_for('owner.set_status', vid=car.id) }}" class="quick-status card">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <input type="hidden" name="next" value="{{ request.path }}">
+  <span class="pill pill-{{ car.status }}">{{ statuses[car.status] }}</span>
+  {% if car.status == 'available' %}
+  <button class="btn" name="status" value="reserved">Reserve</button>
+  <button class="btn primary" name="status" value="sold" data-confirm-form="Sold? It comes off your website and the portals.">Sold</button>
+  {% elif car.status == 'reserved' %}
+  <button class="btn" name="status" value="available">Back on sale</button>
+  <button class="btn primary" name="status" value="sold" data-confirm-form="Sold? It comes off your website and the portals.">Sold</button>
+  {% elif car.status == 'sold' %}
+  <button class="btn" name="status" value="available">Back on sale</button>
+  {% else %}
+  <button class="btn primary" name="status" value="available">Put on sale</button>
+  {% endif %}
+</form>
+{% endif %}
 <form method="post" enctype="multipart/form-data" class="stack car-form" id="car-form"
       action="{{ url_for('owner.edit_car', vid=car.id) if car else url_for('owner.new_car') }}"
       data-catalog="{{ url_for('owner.catalog_lookup') }}" data-disc="{{ url_for('owner.disc_lookup') }}"
@@ -174,6 +192,7 @@
   {% endfor %}
 </section>
 {% endif %}
+{% if seen %}<p class="small center">Last 30 days on your website: <b>{{ seen.views|km }}</b> view{{ '' if seen.views == 1 else 's' }} · <b>{{ seen.whatsapp }}</b> WhatsApp · <b>{{ seen.calls }}</b> call{{ '' if seen.calls == 1 else 's' }}</p>{% endif %}
 <p class="muted small center">Added {{ car.created_at|local('%d %b %Y') }}{% if days is not none %} · {{ days }} day{{ '' if days == 1 else 's' }} {{ 'to sell' if car.status == 'sold' else 'in stock' }}{% endif %}</p>
 <form method="post" action="{{ url_for('owner.delete_car', vid=car.id) }}" class="center" data-confirm="Delete {{ car.full_title }} with its photos? If it's sold, mark it as Sold instead: it then counts in your figures.">
   <input type="hidden" name="csrf" value="{{ csrf_token() }}">

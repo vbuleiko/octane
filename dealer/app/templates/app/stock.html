@@ -19,6 +19,7 @@
   <div class="stat"><b>{{ summary.value|rand }}</b><span>stock value</span></div>
   <div class="stat"><b>{{ summary.avg_days if summary.avg_days is not none else '—' }}</b><span>avg days in stock{% if summary.old %} · {{ summary.old }} over 60{% endif %}</span></div>
   <div class="stat"><b>{{ summary.sold_month }}</b><span>sold this month{% if summary.profit_month is not none %} · {{ summary.profit_month|rand }} profit{% endif %}</span></div>
+  <div class="stat"><b>{{ summary.week.views|km }}</b><span>website views, 7 days · {{ summary.week.whatsapp }} WhatsApp, {{ summary.week.calls }} calls</span></div>
 </section>
 {% endif %}
 
@@ -48,6 +49,7 @@
     <span class="stock-meta">
       {% if c.status == 'reserved' %}<span class="pill pill-reserved">Reserved</span>{% elif c.status == 'draft' %}<span class="pill">Draft</span>{% elif c.status == 'sold' %}<span class="pill pill-sold">Sold {{ c.sold_at|local('%d %b') }}</span>{% endif %}
       {% if c.days is not none %}<span class="{{ 'warn-text' if c.days >= 60 and c.status != 'sold' }}">{% if c.days == 0 and c.status != 'sold' %}Added today{% else %}{{ c.days }} day{{ '' if c.days == 1 else 's' }}{{ ' to sell' if c.status == 'sold' else ' in stock' }}{% endif %}</span>{% endif %}
+      {% if c.stats %}· {{ c.stats.views }} view{{ '' if c.stats.views == 1 else 's' }}{% if c.stats.whatsapp %}, {{ c.stats.whatsapp }} WhatsApp{% endif %}{% endif %}
       {% if c.lead_count %}· {{ c.lead_count }} enquir{{ 'y' if c.lead_count == 1 else 'ies' }}{% endif %}
       {% if not c.photos and c.status != 'sold' %}· <span class="warn-text">no photos</span>{% endif %}
     </span>

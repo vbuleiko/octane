@@ -150,6 +150,17 @@ CREATE TABLE IF NOT EXISTS variants (
 );
 CREATE INDEX IF NOT EXISTS variants_by_model ON variants (make, model);
 
+-- the website's views and taps, per car and day (vehicle_id 0: pages that aren't a car)
+CREATE TABLE IF NOT EXISTS site_stats (
+    tenant_id   INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    vehicle_id  INTEGER NOT NULL DEFAULT 0,
+    day         TEXT NOT NULL,                       -- YYYY-MM-DD in the dealer's time zone
+    views       INTEGER NOT NULL DEFAULT 0,
+    whatsapp    INTEGER NOT NULL DEFAULT 0,
+    calls       INTEGER NOT NULL DEFAULT 0,
+    PRIMARY KEY (tenant_id, vehicle_id, day)
+);
+
 -- portals a dealer advertises on
 CREATE TABLE IF NOT EXISTS channels (
     tenant_id     INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,

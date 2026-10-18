@@ -1,8 +1,6 @@
 @font-face { font-family: "Barlow"; src: url(/static/fonts/barlow-400.woff2) format("woff2"); font-weight: 400; font-display: swap; }
-@font-face { font-family: "Barlow"; src: url(/static/fonts/barlow-500.woff2) format("woff2"); font-weight: 500; font-display: swap; }
 @font-face { font-family: "Barlow"; src: url(/static/fonts/barlow-600.woff2) format("woff2"); font-weight: 600; font-display: swap; }
 @font-face { font-family: "Barlow"; src: url(/static/fonts/barlow-700.woff2) format("woff2"); font-weight: 700; font-display: swap; }
-@font-face { font-family: "Barlow Condensed"; src: url(/static/fonts/barlow-condensed-500.woff2) format("woff2"); font-weight: 500; font-display: swap; }
 @font-face { font-family: "Barlow Condensed"; src: url(/static/fonts/barlow-condensed-600.woff2) format("woff2"); font-weight: 600; font-display: swap; }
 @font-face { font-family: "Barlow Condensed"; src: url(/static/fonts/barlow-condensed-700.woff2) format("woff2"); font-weight: 700; font-display: swap; }
 @font-face { font-family: "Space Grotesk"; src: url(/static/fonts/space-grotesk.woff2) format("woff2"); font-weight: 300 700; font-display: swap; }
@@ -319,6 +317,7 @@ body.site { background: var(--bg); }
 .price-card ul { list-style: none; padding: 0; margin: 20px 0 24px; text-align: left; }
 .price-card li { display: flex; gap: 10px; padding: 6px 0; }
 .price-card li .icon { color: var(--accent); margin-top: 2px; }
+.pricing-note { margin: 18px 0 0; }
 .faq { max-width: 720px; }
 .faq details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
 .faq summary { font-weight: 700; cursor: pointer; }
@@ -395,7 +394,7 @@ body.site { background: var(--bg); }
 .center-row { justify-content: center; }
 .pill-new, .pill-reserved { color: var(--warn); }
 .pill-contacted { color: var(--blue); }
-.pill-won { color: var(--good); }
+.pill-won, .pill-available { color: var(--good); }
 .pill-lost, .pill-sold { color: var(--muted); }
 .copy-row { display: flex; gap: 8px; margin-top: 10px; }
 .copy-row input { flex: 1; min-width: 0; font-size: .85rem; color: var(--muted); }
@@ -422,6 +421,8 @@ details > summary { cursor: pointer; }
 .segmented i { font-style: normal; opacity: .7; margin-left: .2em; }
 
 /* --- app: the car form --- */
+.quick-status { display: flex; align-items: center; gap: 8px; padding: 10px 12px; }
+.quick-status .pill { margin-right: auto; }
 .car-form h2 { margin-bottom: 0; }
 .photo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 @media (min-width: 560px) { .photo-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

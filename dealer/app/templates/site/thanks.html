@@ -10,7 +10,7 @@
   <p class="muted">Usually within working hours, on WhatsApp or by phone.</p>
   <div class="row wrap-row center-row">
     <a class="btn big" href="{{ su('cars') }}">{{ icon('car') }} See our cars</a>
-    {% if wa %}<a class="btn wa big" href="{{ wa }}" target="_blank" rel="noopener" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }} WhatsApp us now</a>{% endif %}
+    {% if wa %}<a class="btn wa big" href="{{ wa }}" target="_blank" rel="noopener" data-tap="whatsapp" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }} WhatsApp us now</a>{% endif %}
   </div>
 </div>
 {% endblock %}

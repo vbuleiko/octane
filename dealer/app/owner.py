@@ -22,7 +22,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from . import accounts, catalog, disc, hours, leads, photos, portals, seed, site, stock, themes
+from . import accounts, catalog, disc, hours, leads, photos, portals, seed, site, stats, stock, themes
 from .db import get_db
 from .public import EMAIL_RE
 from .security import limiter
@@ -130,8 +130,10 @@ def stock_list():
         words = q.lower().split()
         cars = [c for c in cars if all(w in f"{c['full_title']} {c['stock_no']} {c['reg_no']} {c['colour']}".lower()
                                        for w in words)]
+    seen = stats.per_car(db, _tid(), g.today)
     for c in cars:
         c["days"] = stock.days_in_stock(c)
+        c["stats"] = seen.get(c["id"])
     counts = dict(db.execute("SELECT status, COUNT(*) FROM vehicles WHERE tenant_id = ? GROUP BY status",
                              (_tid(),)).fetchall())
     return render_template("app/stock.html", cars=cars, show=show, q=q, counts=counts, summary=_summary(db),
@@ -153,6 +155,7 @@ def _summary(db) -> dict:
         "old": sum(1 for d in days if d >= 60),
         "sold_month": len(sold),
         "profit_month": sum(s["price"] - s["cost"] - s["recon"] for s in costed) if costed else None,
+        "week": stats.totals(db, _tid(), g.today),
     }
 
 
@@ -371,6 +374,7 @@ def edit_car(vid):
         "SELECT * FROM leads WHERE tenant_id = ? AND vehicle_id = ? ORDER BY created_at DESC LIMIT 20", (_tid(), vid))]
     context["page_url"] = site.public_url(g.tenant, "car", car=car["slug"])
     context["days"] = stock.days_in_stock(car)
+    context["seen"] = stats.per_car(get_db(), _tid(), g.today).get(vid)
     context["ad_text"] = portals.ad_text(g.tenant, car)
     context["share_urls"] = [photos.jpeg(p, external=False) for p in car["photos"]]
     return render_template("app/car.html", **context)

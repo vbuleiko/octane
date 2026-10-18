@@ -570,3 +570,20 @@ def test_all_pages_render(owner, db, app, client):
     admin = admin_browser(app)
     assert admin.get("/admin/").status_code == 200
     assert client.get("/no-such-page").status_code == 404
+
+
+def test_views_and_taps(owner, db, app):
+    car = add_car(owner, db)
+    base = site_path(db)
+    visitor = app.test_client()
+    phone = {"User-Agent": "Mozilla/5.0 (Linux; Android 14) Mobile"}
+    visitor.get(f"{base}/cars/{car['slug']}", headers=phone)
+    visitor.get(f"{base}/cars/{car['slug']}", headers={"User-Agent": "WhatsApp/2.24"})  # a link preview
+    visitor.get(f"{base}/cars/{car['slug']}", headers={"User-Agent": "Googlebot/2.1"})
+    owner.get(f"{base}/cars/{car['slug']}", headers=phone)  # the dealer looking at their own car
+    assert visitor.post(f"{base}/tap", data={"kind": "whatsapp", "car": car["id"]}, headers=phone).status_code == 204
+    visitor.post(f"{base}/tap", data={"kind": "nonsense"}, headers=phone)
+    row = db.execute("SELECT * FROM site_stats WHERE vehicle_id = ?", (car["id"],)).fetchone()
+    assert (row["views"], row["whatsapp"], row["calls"]) == (1, 1, 0)
+    assert b"1 view, 1 WhatsApp" in owner.get("/app/").data
+    assert b"Last 30 days on your website" in owner.get(f"/app/car/{car['id']}").data

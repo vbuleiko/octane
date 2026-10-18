@@ -43,7 +43,7 @@
   <div class="card empty-stock">
     <h3>New stock is on its way</h3>
     <p class="muted">Tell us what you're looking for — we'll let you know when it arrives.</p>
-    {% if wa %}<a class="btn wa" href="{{ wa }}" target="_blank" rel="noopener">{{ icon('chat') }} WhatsApp us</a>{% endif %}
+    {% if wa %}<a class="btn wa" href="{{ wa }}" target="_blank" rel="noopener" data-tap="whatsapp">{{ icon('chat') }} WhatsApp us</a>{% endif %}
   </div>
   {% endif %}
 </section>
@@ -85,8 +85,8 @@
   </div>
   <div class="find-us-actions">
     <a class="btn big" href="{{ map_url }}" target="_blank" rel="noopener">{{ icon('pin') }} Directions</a>
-    {% if phone_text %}<a class="btn big" href="{{ tel_link(phone_text) }}">{{ icon('phone') }} {{ phone_text }}</a>{% endif %}
-    {% if wa %}<a class="btn wa big" href="{{ wa }}" target="_blank" rel="noopener" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }} WhatsApp</a>{% endif %}
+    {% if phone_text %}<a class="btn big" href="{{ tel_link(phone_text) }}" data-tap="calls"{% if car is defined and car.id %} data-car="{{ car.id }}"{% endif %}>{{ icon('phone') }} {{ phone_text }}</a>{% endif %}
+    {% if wa %}<a class="btn wa big" href="{{ wa }}" target="_blank" rel="noopener" data-tap="whatsapp" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }} WhatsApp</a>{% endif %}
   </div>
 </section>
 {% endblock %}

@@ -57,9 +57,9 @@
     </ul>
     {% if not sold %}
     <div class="car-actions">
-      {% if car_wa %}<a class="btn wa big" href="{{ car_wa }}" target="_blank" rel="noopener" data-preview data-msg="Hi {{ t.name }}! I'm interested in the {{ car.full_title }} ({{ car.price|rand }}).">{{ icon('chat') }} WhatsApp about this car</a>{% endif %}
+      {% if car_wa %}<a class="btn wa big" href="{{ car_wa }}" target="_blank" rel="noopener" data-tap="whatsapp" data-car="{{ car.id }}" data-preview data-msg="Hi {{ t.name }}! I'm interested in the {{ car.full_title }} ({{ car.price|rand }}).">{{ icon('chat') }} WhatsApp about this car</a>{% endif %}
       <a class="btn big" href="#enquire" data-kind="test_drive">{{ icon('key') }} Book a test drive</a>
-      {% if phone_text %}<a class="btn big" href="{{ tel_link(phone_text) }}">{{ icon('phone') }} Call</a>{% endif %}
+      {% if phone_text %}<a class="btn big" href="{{ tel_link(phone_text) }}" data-tap="calls"{% if car is defined and car.id %} data-car="{{ car.id }}"{% endif %}>{{ icon('phone') }} Call</a>{% endif %}
     </div>
     {% endif %}
     {% if perks and not sold %}<ul class="mini-perks">{% for title, line in perks[:3] %}<li>{{ icon('check') }} {{ title }}</li>{% endfor %}</ul>{% endif %}
@@ -128,8 +128,8 @@
 {% if not sold %}
 <div class="contact-bar">
   <span class="contact-price"><b>{{ car.price|rand }}</b>{% if car.finance %}<small>≈ {{ car.finance.monthly|rand }} p/m</small>{% endif %}</span>
-  {% if phone_text %}<a class="btn" href="{{ tel_link(phone_text) }}" aria-label="Call">{{ icon('phone') }}</a>{% endif %}
-  {% if car_wa %}<a class="btn wa" href="{{ car_wa }}" target="_blank" rel="noopener" data-preview data-msg="Hi {{ t.name }}! I'm interested in the {{ car.full_title }} ({{ car.price|rand }}).">{{ icon('chat') }} WhatsApp</a>{% endif %}
+  {% if phone_text %}<a class="btn" href="{{ tel_link(phone_text) }}" data-tap="calls"{% if car is defined and car.id %} data-car="{{ car.id }}"{% endif %} aria-label="Call">{{ icon('phone') }}</a>{% endif %}
+  {% if car_wa %}<a class="btn wa" href="{{ car_wa }}" target="_blank" rel="noopener" data-tap="whatsapp" data-car="{{ car.id }}" data-preview data-msg="Hi {{ t.name }}! I'm interested in the {{ car.full_title }} ({{ car.price|rand }}).">{{ icon('chat') }} WhatsApp</a>{% endif %}
 </div>
 {% else %}{{ super() }}{% endif %}
 {% endblock %}

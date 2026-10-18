@@ -17,7 +17,7 @@
 {% block page_head %}{% endblock %}
 {% endblock %}
 {% block body_class %}site dealer{% endblock %}
-{% block body_attrs %}data-demo="{{ 1 if t.is_demo else 0 }}"{% endblock %}
+{% block body_attrs %}data-demo="{{ 1 if t.is_demo else 0 }}" data-tap-url="{{ su('tap') }}"{% endblock %}
 {% block body %}
 {% include "site/_top.html" %}
 <header class="dealer-nav">
@@ -31,7 +31,7 @@
       <a href="{{ su('sell') }}" {{ 'aria-current=page' if request.endpoint in ('site.sell', 'site.sell_d') }}>Sell your car</a>
       <a href="{{ su('contact') }}" {{ 'aria-current=page' if request.endpoint in ('site.contact', 'site.contact_d') }}>Contact</a>
     </nav>
-    {% if wa %}<a class="btn wa nav-wa" href="{{ wa }}" target="_blank" rel="noopener" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }}<span>WhatsApp</span></a>{% endif %}
+    {% if wa %}<a class="btn wa nav-wa" href="{{ wa }}" target="_blank" rel="noopener" data-tap="whatsapp" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }}<span>WhatsApp</span></a>{% endif %}
   </div>
 </header>
 
@@ -44,7 +44,7 @@
     <section>
       <b class="footer-name">{{ t.name }}</b>
       {% if place %}<p><a href="{{ map_url }}" target="_blank" rel="noopener">{{ icon('pin') }} {{ place }}</a></p>{% endif %}
-      {% if phone_text %}<p><a href="{{ tel_link(phone_text) }}">{{ icon('phone') }} {{ phone_text }}</a></p>{% endif %}
+      {% if phone_text %}<p><a href="{{ tel_link(phone_text) }}" data-tap="calls"{% if car is defined and car.id %} data-car="{{ car.id }}"{% endif %}>{{ icon('phone') }} {{ phone_text }}</a></p>{% endif %}
       {% if t.public_email %}<p><a href="mailto:{{ t.public_email }}">{{ icon('mail') }} {{ t.public_email }}</a></p>{% endif %}
     </section>
     <section>
@@ -64,8 +64,8 @@
 {% block contact_bar %}
 {% if wa or phone_text %}
 <div class="contact-bar">
-  {% if phone_text %}<a class="btn" href="{{ tel_link(phone_text) }}">{{ icon('phone') }} Call</a>{% endif %}
-  {% if wa %}<a class="btn wa" href="{{ wa }}" target="_blank" rel="noopener" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }} WhatsApp</a>{% endif %}
+  {% if phone_text %}<a class="btn" href="{{ tel_link(phone_text) }}" data-tap="calls"{% if car is defined and car.id %} data-car="{{ car.id }}"{% endif %}>{{ icon('phone') }} Call</a>{% endif %}
+  {% if wa %}<a class="btn wa" href="{{ wa }}" target="_blank" rel="noopener" data-tap="whatsapp" data-preview data-msg="(opens a WhatsApp chat with {{ t.name }})">{{ icon('chat') }} WhatsApp</a>{% endif %}
 </div>
 {% endif %}
 {% endblock %}

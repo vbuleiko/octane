@@ -63,7 +63,7 @@
   <div class="card empty-stock">
     <h3>No cars match{{ ' “' ~ f.q ~ '”' if f.q }}</h3>
     <p class="muted">Try fewer filters — or tell us what you're looking for, and we'll find it.</p>
-    <div class="row wrap-row center-row"><a class="btn" href="{{ su('cars') }}">See all cars</a>{% if wa %}<a class="btn wa" href="{{ wa }}" target="_blank" rel="noopener">{{ icon('chat') }} WhatsApp us</a>{% endif %}</div>
+    <div class="row wrap-row center-row"><a class="btn" href="{{ su('cars') }}">See all cars</a>{% if wa %}<a class="btn wa" href="{{ wa }}" target="_blank" rel="noopener" data-tap="whatsapp">{{ icon('chat') }} WhatsApp us</a>{% endif %}</div>
   </div>
   {% endif %}
 
