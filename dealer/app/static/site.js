@@ -22,6 +22,12 @@
       preview.showModal();
       return;
     }
+    const share = e.target.closest("[data-share]");
+    if (share && navigator.share) {  // the phone's own share sheet; otherwise the link opens WhatsApp
+      e.preventDefault();
+      navigator.share({ title: share.dataset.title, url: share.dataset.share }).catch(() => null);
+      return;
+    }
     const kind = e.target.closest("[data-kind]");
     if (kind) {  // "Book a test drive": the form below, with test drive picked
       const radio = document.getElementById("kind-test-drive");

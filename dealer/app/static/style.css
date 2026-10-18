@@ -683,6 +683,7 @@ body.dealer { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
 .key-facts li { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px; border: 1px solid var(--line); border-radius: calc(var(--radius) * .7); background: var(--card); font-size: .85rem; font-weight: 600; text-align: center; }
 .key-facts .icon { color: var(--accent); }
 .car-actions { display: grid; gap: 10px; }
+.share-btn { justify-self: start; min-height: 40px; color: var(--muted); }
 .mini-perks { list-style: none; margin: 14px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: .9rem; }
 .mini-perks .icon { color: var(--good); }
 .car-details { padding-top: 12px; }

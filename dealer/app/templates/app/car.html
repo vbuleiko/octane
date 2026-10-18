@@ -174,6 +174,11 @@
 
 {% if car %}
 {% if car.photos and car.status in ('available', 'reserved') %}
+<section class="card stack" id="send">
+  <h2>Send it to a buyer</h2>
+  <div class="copy-row"><input value="{{ page_url }}" readonly aria-label="The car's page" data-copy-src><button type="button" class="btn" data-copy>{{ icon('copy') }} Copy</button></div>
+  <a class="btn wa" href="{{ wa_link('', car.full_title ~ ' · ' ~ (car.price|rand) ~ ' ' ~ page_url) }}" target="_blank" rel="noopener">{{ icon('chat') }} Send on WhatsApp</a>
+</section>
 <section class="card stack" id="by-hand">
   <h2>Put it on another portal by hand</h2>
   <p class="muted small">For AutoTrader Connect, Facebook Marketplace or a WhatsApp status: copy the ad, then add the photos.</p>

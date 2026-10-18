@@ -60,6 +60,7 @@
       {% if car_wa %}<a class="btn wa big" href="{{ car_wa }}" target="_blank" rel="noopener" data-tap="whatsapp" data-car="{{ car.id }}" data-preview data-msg="Hi {{ t.name }}! I'm interested in the {{ car.full_title }} ({{ car.price|rand }}).">{{ icon('chat') }} WhatsApp about this car</a>{% endif %}
       <a class="btn big" href="#enquire" data-kind="test_drive">{{ icon('key') }} Book a test drive</a>
       {% if phone_text %}<a class="btn big" href="{{ tel_link(phone_text) }}" data-tap="calls"{% if car is defined and car.id %} data-car="{{ car.id }}"{% endif %}>{{ icon('phone') }} Call</a>{% endif %}
+      <a class="btn ghost share-btn" href="{{ wa_link('', car.full_title ~ ' · ' ~ (car.price|rand) ~ ' ' ~ page_url) }}" target="_blank" rel="noopener" data-share="{{ page_url }}" data-title="{{ car.full_title }} · {{ car.price|rand }}">{{ icon('share') }} Send to someone</a>
     </div>
     {% endif %}
     {% if perks and not sold %}<ul class="mini-perks">{% for title, line in perks[:3] %}<li>{{ icon('check') }} {{ title }}</li>{% endfor %}</ul>{% endif %}
