@@ -242,7 +242,7 @@ def car(car, slug=None):
         "site/car.html", tenant, car=found, specs=stock.specs(found), page_url=page_url,
         description=stock.full_description(found, tenant), similar=_add_finance(tenant, stock.similar(all_cars, found)),
         car_wa=_wa(tenant, wa_text), json_ld=stock.json_ld(found, tenant, page_url, home_url(tenant)),
-        credits=[p["credit"] for p in found["photos"] if p.get("credit")],
+        credits=[c for c in (samples.credit(p["key"]) for p in found["photos"]) if c],
     )
 
 

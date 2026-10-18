@@ -252,6 +252,8 @@ def _read_car_form(car: dict | None) -> tuple[dict, list[str]]:
         "channels_off": channels_off,
         "photo_ids": [int(x) for x in f.getlist("photo") if is_number(x)][:MAX_PHOTOS],
     }
+    if not data["description"] and status != "draft":  # the website, Facebook and the portals all want one
+        data["description"] = stock.describe(data)
     return data, errors
 
 

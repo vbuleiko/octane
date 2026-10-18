@@ -24,9 +24,19 @@ def cars() -> list[dict]:
     return [dict(c) for c in _data()["cars"]]
 
 
+@lru_cache
+def _credits() -> dict:
+    return {f"samples/{p['name']}": p for c in _data()["cars"] for p in c["photos"]}
+
+
+def credit(key: str) -> dict | None:
+    """Author and licence of an example photo, shown on the car's page."""
+    return _credits().get(key)
+
+
 def photo_rows(car: dict) -> list[dict]:
-    return [{"key": f"samples/{p['name']}", "width": p["width"], "height": p["height"], "color": p["color"],
-             "credit": p} for p in car["photos"]]
+    return [{"key": f"samples/{p['name']}", "width": p["width"], "height": p["height"], "color": p["color"]}
+            for p in car["photos"]]
 
 
 def as_stock(created_at: str) -> list[dict]:

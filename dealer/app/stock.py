@@ -246,7 +246,8 @@ def describe(car: dict) -> str:
              if car.get("engine") else ""]
     facts = [f for f in facts if f]
     if facts:
-        lines.append(", ".join(facts).capitalize() + ".")
+        line = ", ".join(facts)
+        lines.append(line[:1].upper() + line[1:] + ".")  # not capitalize(): it would make "TSI" "tsi"
     history = catalog.SERVICE_HISTORY.get(car.get("service_history", ""))
     if history and car.get("service_history") != "none":
         lines.append(history + ".")

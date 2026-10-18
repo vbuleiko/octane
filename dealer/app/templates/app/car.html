@@ -198,7 +198,7 @@
 </section>
 {% endif %}
 {% if seen %}<p class="small center">Last 30 days on your website: <b>{{ seen.views|km }}</b> view{{ '' if seen.views == 1 else 's' }} · <b>{{ seen.whatsapp }}</b> WhatsApp · <b>{{ seen.calls }}</b> call{{ '' if seen.calls == 1 else 's' }}</p>{% endif %}
-<p class="muted small center">Added {{ car.created_at|local('%d %b %Y') }}{% if days is not none %} · {{ days }} day{{ '' if days == 1 else 's' }} {{ 'to sell' if car.status == 'sold' else 'in stock' }}{% endif %}</p>
+<p class="muted small center">Added {{ car.created_at|local('%d %b %Y') }}{% if days %} · {{ days }} day{{ '' if days == 1 else 's' }} {{ 'to sell' if car.status == 'sold' else 'in stock' }}{% endif %}</p>
 <form method="post" action="{{ url_for('owner.delete_car', vid=car.id) }}" class="center" data-confirm="Delete {{ car.full_title }} with its photos? If it's sold, mark it as Sold instead: it then counts in your figures.">
   <input type="hidden" name="csrf" value="{{ csrf_token() }}">
   <button class="btn ghost danger">{{ icon('trash') }} Delete this car</button>
