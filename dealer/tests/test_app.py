@@ -7,7 +7,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from app import catalog, disc, notify, portals
+from app import catalog, disc, notify, portals, stats
 from app.utils import monthly_payment, now_utc, normalize_phone, parse_amount, parse_coords, slugify
 
 from .conftest import Browser, jpeg, signup
@@ -472,6 +472,15 @@ def test_demo(client, db):
     site = b.post("/demo", {"next": "site"})
     assert site.status_code == 302 and "/site/sunrise-motors-" in site.location
     assert client.get(site.location).status_code == 200
+    demo = db.execute("SELECT * FROM tenants WHERE is_demo = 1 ORDER BY id DESC").fetchone()
+    assert stats.totals(db, demo["id"], date.today())["views"] > 0  # the dashboard isn't all zeros
+    car = db.execute("SELECT v.slug, COUNT(p.id) AS n FROM vehicles v JOIN photos p ON p.vehicle_id = v.id "
+                     "WHERE v.tenant_id = ? AND v.status = 'available' GROUP BY v.id ORDER BY v.id",
+                     (demo["id"],)).fetchone()
+    assert car["n"] > 1
+    page = client.get(site.location.rstrip("/") + "/cars/" + car["slug"]).get_data(as_text=True)
+    credits = page.split('class="muted small credits"')[1].split("</p>")[0]
+    assert "(photos 1, " in re.sub(r"<[^>]+>", "", credits)  # an author with several photos is named once
 
 
 # --- emails ------------------------------------------------------------------------------

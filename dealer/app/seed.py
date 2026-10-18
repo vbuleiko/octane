@@ -109,7 +109,7 @@ def create_demo(db, theme="") -> int:
     )
     rng = random.Random(tenant_id)
     cars = samples.cars()
-    ids = []
+    ids, on_sale = [], []
     for i, car in enumerate(cars):
         status, sold = "available", None
         if i in (3, 9):
@@ -117,9 +117,12 @@ def create_demo(db, theme="") -> int:
         if i in (5, 12):
             status, sold = "sold", rng.randint(2, 20)
         cost = round(car["price"] * rng.uniform(0.78, 0.86), -3)
-        ids.append(add_car(db, tenant_id, {**car, "cost": cost, "recon": rng.choice([0, 3500, 6800, 12500])},
-                           samples.photo_rows(car), status=status, listed_days_ago=rng.randint(1, 70),
-                           sold_days_ago=sold, featured=i in (0, 1, 2)))
+        recon, listed = rng.choice([0, 3500, 6800, 12500]), rng.randint(1, 70)
+        ids.append(add_car(db, tenant_id, {**car, "cost": cost, "recon": recon}, samples.photo_rows(car),
+                           status=status, listed_days_ago=listed, sold_days_ago=sold, featured=i in (0, 1, 2)))
+        if not sold:
+            on_sale.append((ids[-1], listed))
+    _demo_stats(db, tenant_id, on_sale, rng)
     now = now_utc()
     for i, (kind, name, status, minutes, message, details) in enumerate(DEMO_LEADS):
         vehicle = None
@@ -133,6 +136,19 @@ def create_demo(db, theme="") -> int:
                "VALUES (?, 'facebook', 'connected', ?, ?, ?, 41)",
                (tenant_id, ts(now - timedelta(days=12)), ts(now - timedelta(days=11)), ts(now - timedelta(hours=3))))
     return tenant_id
+
+
+def _demo_stats(db, tenant_id: int, on_sale: list[tuple[int, int]], rng: random.Random, days: int = 30):
+    """A month of website visits, so the demo's numbers aren't all zero."""
+    today = local_today(zone(DEFAULT_TZ))
+    rows = []
+    for back in range(days):
+        day = (today - timedelta(days=back)).isoformat()
+        rows.append((tenant_id, 0, day, rng.randint(25, 60), 0, int(rng.random() < 0.3)))
+        rows += [(tenant_id, vehicle_id, day, rng.randint(1, 14), int(rng.random() < 0.2), int(rng.random() < 0.06))
+                 for vehicle_id, listed in on_sale if back < listed]
+    db.executemany("INSERT INTO site_stats (tenant_id, vehicle_id, day, views, whatsapp, calls) "
+                   "VALUES (?, ?, ?, ?, ?, ?)", rows)
 
 
 def demo_cutoff(max_age_hours=DEMO_HOURS) -> str:

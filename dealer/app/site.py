@@ -242,8 +242,18 @@ def car(car, slug=None):
         "site/car.html", tenant, car=found, specs=stock.specs(found), page_url=page_url,
         description=stock.full_description(found, tenant), similar=_add_finance(tenant, stock.similar(all_cars, found)),
         car_wa=_wa(tenant, wa_text), json_ld=stock.json_ld(found, tenant, page_url, home_url(tenant)),
-        credits=[c for c in (samples.credit(p["key"]) for p in found["photos"]) if c],
+        credits=_credits(found["photos"]),
     )
+
+
+def _credits(photos: list[dict]) -> list[dict]:
+    """Example photos' authors, each once, with links to their photos' pages."""
+    out = {}
+    for n, p in enumerate(photos, start=1):
+        c = samples.credit(p["key"])
+        if c:
+            out.setdefault((c["author"], c["license"]), {**c, "photos": []})["photos"].append((n, c["source_url"]))
+    return list(out.values())
 
 
 TERMS = [12, 24, 36, 48, 54, 60, 72, 84]

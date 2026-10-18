@@ -78,7 +78,7 @@
     <p class="prewrap description">{{ description }}</p>
     {% endif %}
     {% if credits %}
-    <p class="muted small credits">Example photos: {% for c in credits %}<a href="{{ c.source_url }}" target="_blank" rel="noopener nofollow">{{ c.author }}</a>, <a href="{{ c.license_url }}" target="_blank" rel="noopener nofollow">{{ c.license }}</a>{{ '; ' if not loop.last }}{% endfor %} — via Wikimedia Commons.</p>
+    <p class="muted small credits">Example photos: {% for c in credits %}{{ c.author }} (photo{{ 's' if c.photos|length > 1 }} {% for n, url in c.photos %}<a href="{{ url }}" target="_blank" rel="noopener nofollow">{{ n }}</a>{{ ', ' if not loop.last }}{% endfor %}), <a href="{{ c.license_url }}" target="_blank" rel="noopener nofollow">{{ c.license }}</a>{{ '; ' if not loop.last }}{% endfor %} — via Wikimedia Commons.</p>
     {% endif %}
   </section>
 

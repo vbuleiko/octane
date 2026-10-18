@@ -10,7 +10,7 @@ import json
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageOps
+from PIL import Image, ImageFilter, ImageOps
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "app" / "static" / "samples"
@@ -78,15 +78,28 @@ def nice_price(value: float) -> int:
     return max(9_900, int(value // 1000) * 1000 + 900)
 
 
+def four_by_three(img: Image.Image) -> Image.Image:
+    """Wide Commons shots (2:1) into the 4:3 of a phone photo: the whole car, on a blurred copy of itself."""
+    w, h = img.size
+    if w / h <= 4 / 3 + 0.02:
+        return img
+    canvas = ImageOps.fit(img, (w, round(w * 3 / 4)), Image.Resampling.LANCZOS)
+    canvas = canvas.filter(ImageFilter.GaussianBlur(w / 40)).point(lambda v: int(v * 0.8))
+    canvas.paste(img, (0, (canvas.height - h) // 2))
+    return canvas
+
+
 def photo_sizes(src: Path, name: str) -> dict:
-    img = ImageOps.exif_transpose(Image.open(src)).convert("RGB")
+    img = four_by_three(ImageOps.exif_transpose(Image.open(src)).convert("RGB"))
     img.thumbnail((MAX_SIDE, MAX_SIDE), Image.Resampling.LANCZOS)
     OUT.mkdir(parents=True, exist_ok=True)
-    img.save(OUT / f"{name}.jpg", "JPEG", quality=80, optimize=True, progressive=True)
+    preview = img.copy()
+    preview.thumbnail((800, 800), Image.Resampling.LANCZOS)  # link previews and the demo's zip: small is fine
+    preview.save(OUT / f"{name}.jpg", "JPEG", quality=76, optimize=True, progressive=True)
     sizes = [w for w in WIDTHS if w < img.width] + [img.width]
     for w in sizes:
         small = img if w == img.width else img.resize((w, round(img.height * w / img.width)), Image.Resampling.LANCZOS)
-        small.save(OUT / f"{name}-{w}.webp", "WEBP", quality=74, method=6)
+        small.save(OUT / f"{name}-{w}.webp", "WEBP", quality=72, method=6)
     r, g, b = img.resize((1, 1), Image.Resampling.BOX).getpixel((0, 0))
     return {"name": name, "width": img.width, "height": img.height, "color": f"#{r:02x}{g:02x}{b:02x}"}
 
@@ -98,17 +111,27 @@ def main(folder: Path):
             old.unlink()
     cars = []
     for i, entry in enumerate(manifest, start=1):
-        key = (entry["make"], entry["model"])
+        key = (entry["make"], {"Golf GTI": "Golf"}.get(entry["model"], entry["model"]))
         if key not in CARS or not entry.get("files"):
             print("skipped:", entry.get("car"))
             continue
         variant, body, fuel, gearbox, drive, engine, doors, seats, price, year0, km_year, features = CARS[key]
         year = int(entry.get("year_guess") or year0)
-        model = entry["model"]
+        model = key[1]
+        if key == ("Hyundai", "i10"):  # the i10 in the photo looks like the Grand i10 South Africa got
+            model = "Grand i10"
+        if key == ("Toyota", "Corolla Cross"):  # on sale in South Africa from late 2021, the photo's is a hybrid
+            year, variant, fuel, price, year0 = max(year, 2022), "1.8 XR Hybrid CVT", "Hybrid", 429_900, 2022
+        if key == ("Toyota", "Corolla") and entry.get("body") == "Hatchback":
+            variant, body, engine, doors = "1.2T XR CVT", "Hatchback", "1.2T", 5
+        if key == ("Isuzu", "D-Max") and year >= 2021:  # the photo's is the 1.9
+            variant, engine, price, year0 = "1.9 Ddi LS double cab", "1.9 Ddi", 529_900, 2024
         if key == ("Isuzu", "D-Max") and year < 2019:
             model, variant = "KB", "250 D-Teq LE double cab"
         if key == ("Ford", "Ranger") and year < 2019:
             variant = "3.2 TDCi XLT 4x4 double cab auto"
+        if key == ("Renault", "Kwid") and year < 2019:
+            variant = "1.0 Dynamique"
         age = max(1, 2026 - year)
         slug = f"{year}-{entry['make']}-{model}-{variant}".lower()
         slug = "".join(c if c.isalnum() else "-" for c in slug)

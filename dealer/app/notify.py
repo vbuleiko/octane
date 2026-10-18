@@ -123,7 +123,7 @@ def tick(db, config, now: datetime | None = None):
 def send_leads(db, config, now: datetime):
     """Each new enquiry to its dealer (a website we made for a dealer without an owner yet: to you)."""
     rows = db.execute(
-        "SELECT l.*, t.name AS dealer, t.email AS login, t.lead_email, t.is_demo, t.slug, t.domain "
+        "SELECT l.*, t.name AS dealer, t.email AS login, t.lead_email, t.is_demo "
         "FROM leads l JOIN tenants t ON t.id = l.tenant_id WHERE l.emailed_at IS NULL AND l.created_at >= ? "
         "ORDER BY l.id LIMIT 50", (ts(now - timedelta(days=2)),)).fetchall()
     for r in rows:
@@ -149,12 +149,6 @@ def forget_lost_photos(db, media_dir: Path, now: datetime):
 
 def _n(count: int, word: str, plural: str = "") -> str:
     return f"{count} {word if count == 1 else plural or word + 's'}"
-
-
-def _site(config, r) -> str:
-    if r["domain"]:
-        return f"https://{r['domain']}"
-    return f"{config['SITE_URL']}/site/{r['slug']}" if config["SITE_URL"] else ""
 
 
 def lead_mail(r, config) -> tuple[str, str]:

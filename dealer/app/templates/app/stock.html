@@ -19,7 +19,7 @@
   <div class="stat"><b>{{ summary.value|rand }}</b><span>stock value</span></div>
   <div class="stat"><b>{{ summary.avg_days if summary.avg_days is not none else '—' }}</b><span>avg days in stock{% if summary.old %} · {{ summary.old }} over 60{% endif %}</span></div>
   <div class="stat"><b>{{ summary.sold_month }}</b><span>sold this month{% if summary.profit_month is not none %} · {{ summary.profit_month|rand }} profit{% endif %}</span></div>
-  <div class="stat"><b>{{ summary.week.views|km }}</b><span>website views, 7 days · {{ summary.week.whatsapp }} WhatsApp, {{ summary.week.calls }} calls</span></div>
+  <div class="stat"><b>{{ summary.week.views|km }}</b><span>website views, 7 days · {{ summary.week.whatsapp }} WhatsApp, {{ summary.week.calls }} call{{ '' if summary.week.calls == 1 else 's' }}</span></div>
 </section>
 {% endif %}
 
